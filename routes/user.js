@@ -48,12 +48,12 @@ let newFirm, newManufacturer, newProfessional;
 			newManufacturer = await manufacturer.save();
 			user.userType.manufacturer.manufacturerId=newManufacturer._id;
 		}
-		else if( type === "professional"){
-			user.userType.professional.isProfessional=true;
-			professional = await Professional({userId:user._id})
-			newProfessional = await professional.save();
-			user.userType.professional.professioanlId=newProfessional._id;
-		}
+		// else if( type === "professional"){
+		// 	user.userType.professional.isProfessional=true;
+		// 	professional = await Professional({userId:user._id})
+		// 	newProfessional = await professional.save();
+		// 	user.userType.professional.professioanlId=newProfessional._id;
+		// }
 		
 		const newuser = await user.save()
 		if (newuser) {
