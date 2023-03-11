@@ -23,7 +23,7 @@ const verify=async (req,res,next)=>{
     }
 }
 const authTest=(req,res,next)=>{
-    // console.log("here")
+    console.log("suth test here")
     verify(req,res,()=>{
         // console.log("this is the param"+req.params.id)
         // console.log()
