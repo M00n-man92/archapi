@@ -15,17 +15,17 @@ const gravatar = require('gravatar')
 
 route.post('/register', async (req, res) => {
 	const { name, password, email, username, type, lName, cell, account } = req.body
-let firm,manufacturer,professional;
-let newFirm, newManufacturer, newProfessional;
+	let firm, manufacturer, professional;
+	let newFirm, newManufacturer, newProfessional;
 	try {
 		const em = await User.findOne({ email })
-		const usedUserName = await User.findOne({userName:username}) 
+		const usedUserName = await User.findOne({ userName: username })
 		if (em || usedUserName) {
 			return res.status(400).json({ success: false, msg: "email  or username already in use", data: null })
 		}
 		const newpass = await genert(password)
-		
-		const user = new User({ name: name, email: email, password: newpass,userName:username, cellPhone:cell, lastName: lName })
+
+		const user = new User({ name: name, email: email, password: newpass, userName: username, cellPhone: cell, lastName: lName })
 
 		const avatar = await gravatar.url(user.email, {
 			s: '200',
@@ -34,19 +34,19 @@ let newFirm, newManufacturer, newProfessional;
 		})
 		user.profilepic = avatar
 		console.log(user)
-		if( type==="firm"){
-			user.userType.firm.isFirm=true;
-			firm = new Firm({userId:user._id})
-			newFirm= await firm.save();
-			user.userType.firm.firmId=newFirm._id;
+		if (type === "firm") {
+			user.userType.firm.isFirm = true;
+			firm = new Firm({ userId: user._id })
+			newFirm = await firm.save();
+			user.userType.firm.firmId = newFirm._id;
 		}
 		// console.log(user)
-		else if( type === "manufacturer"){
+		else if (type === "manufacturer") {
 			console.log("this is legenderay")
-			user.userType.manufacturer.isManufacturer=true;
-			manufacturer = await Manufacturer({userId:user._id})
+			user.userType.manufacturer.isManufacturer = true;
+			manufacturer = await Manufacturer({ userId: user._id })
 			newManufacturer = await manufacturer.save();
-			user.userType.manufacturer.manufacturerId=newManufacturer._id;
+			user.userType.manufacturer.manufacturerId = newManufacturer._id;
 		}
 		// else if( type === "professional"){
 		// 	user.userType.professional.isProfessional=true;
@@ -54,7 +54,7 @@ let newFirm, newManufacturer, newProfessional;
 		// 	newProfessional = await professional.save();
 		// 	user.userType.professional.professioanlId=newProfessional._id;
 		// }
-		
+
 		const newuser = await user.save()
 		if (newuser) {
 			console.log("herer")
@@ -88,7 +88,7 @@ let newFirm, newManufacturer, newProfessional;
 				if (info) {
 					console.log(info)
 
-					const { _id,password, isAdmin, isConfirmed, ...others } = newuser._doc
+					const { _id, password, isAdmin, isConfirmed, ...others } = newuser._doc
 					return res.status(201).json({ success: true, msg: "registered successfully, please check your email to login", data: _id })
 				}
 			}
@@ -108,10 +108,10 @@ route.post('/login', async (req, res) => {
 	const { email, password, userName } = req.body
 	// console.log(email,password)
 	try {
-		console.log(email,password,userName)
-	  let user
+		console.log(email, password, userName)
+		let user
 		email ? user = await User.findOne({ email }) : user = await User.findOne({ userName })
-		
+
 		if (!user) {
 			// console.log("pills")
 			return res.status(400).json({ success: false, msg: "Incorrect Credentials", data: null })
@@ -392,6 +392,119 @@ route.put("/userupdate/:token", async (req, res) => {
 		return res.status(500).json({ success: false, msg: "error on pur part. we are on it now" })
 	}
 
+
+})
+
+/// route for rating firm
+route.put("/ratefirm/:id/:firmId", authTest, async (req, res) => {
+	// console.log(req.body)
+	const firmId = req.params.firmId
+	try {
+		// const userReview = User.findOne({ "review.reviewedUser.firmId": req.params.firmId })
+
+		const updatedReview = await User.findOneAndUpdate({ _id: req.params.id, "review.reviewedUser.firm.firmId": req.params.firmId },
+			{ $set: { review: { value: req.body.value } } }, {
+			new: true
+		})
+		// console.log("here")
+		// console.log(updatedReview)
+		if (updatedReview) {
+			const firmUpdatedReview = await Firm.findOneAndUpdate({ _id: req.params.firmId, "reviewRecieved.userId": req.params.id },
+				{ $set: { reviewRecieved: { userId: req.params.id, value: req.body.value } } },
+				{ new: true })
+			const { review } = updatedReview;
+			const { reviewRecieved } = firmUpdatedReview
+			return res.status(201).json({ success: true, msg: "update complete", data: { review, reviewRecieved } })
+		}
+		else {
+			console.log("not found")
+			const newReview = await User.findOneAndUpdate({ _id: req.params.id },
+				{
+					$push:
+					{
+						review:
+						{
+							value: req.body.value,
+							reviewedUser: {
+								firm: {
+									isFirm: true,
+									firmId: firmId
+								}
+							}
+						}
+					}
+				}
+				, { new: true })
+			// console.log(newReview)
+			const newFirmReview = await Firm.findOneAndUpdate({ _id: req.params.firmId },
+				{ $push: { reviewRecieved: { userId: req.params.id, value: req.body.value } } }
+				, { new: true })
+			// console.log(newFirmReview)
+			const { review } = newReview;
+			const { reviewRecieved } = newFirmReview
+			return res.status(201).json({ success: true, msg: "new review set", data: { review, reviewRecieved } })
+		}
+	}
+	catch (e) {
+		return res.status(500).json({ success: false, msg: "error on pur part. we are on it now", error: e })
+
+	}
+
+})
+
+/// route for following firm
+route.put("/followfirm/:id/:firmId", authTest, async (req, res) => {
+	const id = req.params.id
+	const firmId = req.params.firmId
+	try {
+		const foundUser = await Firm.findOne({ userId: id, _id: firmId })
+		if (foundUser) {
+			return res.status(201).json({ success: false, msg: "cant follow your own accounts" })
+		}
+
+		const followUser = await Firm.findOneAndUpdate({ _id: firmId },
+			{ $push: { firmInfo: { followers: req.params.id } } }, { new: true })
+		if (followUser) {
+			console.log(followUser)
+			return res.status(201).json({ success: true, msg: "you are now following this account", data: followUser })
+		}
+		else {
+			return res.status(501).json({ success: false, msg: "could follow account something went wrong" })
+		}
+	}
+	catch (e) {
+		return res.status(500).json({ success: false, msg: "error on pur part. we are on it now", error: e })
+	}
+
+})
+
+// route to unfollow user 
+route.put("/unfollowfirm/:id/:firmId", authTest, async (req, res) => {
+	const id = req.params.id
+	const firmId = req.params.firmId
+	try {
+		// const foundUser = await Firm.findOne({ _id: firmId, "firmInfo.followers": req.params.id })
+
+		const foundUser = await Firm.findOneAndUpdate({ _id: firmId, "firmInfo.followers": req.params.id },
+			{
+				$pull: {
+					firmInfo: {
+						followers: req.params.id
+					}
+				}
+			}, { multi: false })
+		if (!foundUser) {
+			console.log("didint find it")
+			return res.status(201).json({ success: false, msg: "cant unfollow since you're following account" })
+		}
+		console.log("found it")
+		return res.status(201).json({ success: true, msg: "unfollowed successfully", data: foundUser })
+
+
+	}
+	catch (e) {
+		return res.status(500).json({ success: false, msg: "error on pur part. we are on it now", error: e })
+	}
 
 })
 

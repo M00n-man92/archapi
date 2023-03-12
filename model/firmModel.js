@@ -26,8 +26,8 @@ const schema = new mongoose.Schema({
     
     aboutFirm: { type: Array },
     officeCell: { type: String },
-    followers: [{ id: { type: mongoose.Schema.ObjectId, ref: 'user' } }],
-    following: [{ id: { type: mongoose.Schema.ObjectId, ref: 'user' } }],
+    followers: [{type: mongoose.Schema.ObjectId, ref: 'user', unique:true} ],
+    following: [ {type: mongoose.Schema.ObjectId, ref: 'user'} ],
     region: {
       country: { type: String },
       city: [{ location: { type: String } }],

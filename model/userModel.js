@@ -28,22 +28,23 @@ const schema = new mongoose.Schema({
       products: [{ id: { type: mongoose.Schema.ObjectId, ref: 'products' } }]
     }
   },
-  
+  followers: [{ type: mongoose.Schema.ObjectId, ref: 'user' } ],
+    following: [{ type: mongoose.Schema.ObjectId, ref: 'user' } ],
   review: [{
     comments: { type: String },
     value: { type: Number, min: [1], max: [5] },
     reviewedUser: {
       firm: {
         isFirm: { type: Boolean },
-        firmId: [{ id: { type: mongoose.Schema.ObjectId, ref: 'firm' } }]
+        firmId: { type: mongoose.Schema.ObjectId, ref: 'firm'}  
       },
       professional: {
         isProfessional: { type: Boolean },
-        professionalId: [{ id: { type: mongoose.Schema.ObjectId, ref: 'professional' } }]
+        professionalId:  { type: mongoose.Schema.ObjectId, ref: 'professional' }
       },
       manufacturer: {
         isManufacturer: { type: Boolean },
-        manufacturerId: [{ id: { type: mongoose.Schema.ObjectId, ref: 'manufacturer' } }]
+        manufacturerId: { type: mongoose.Schema.ObjectId, ref: 'manufacturer' }
       }
     }
   }],
