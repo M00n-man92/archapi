@@ -301,8 +301,9 @@ route.get('/find', authTestAdmin, async (req, res) => {
 
 })
 route.get('/find/:id', authTest, async (req, res) => {
+	console.log(req.params.id)
 	try {
-
+		// return res.json({user:req.user})
 		const user = await User.findById(req.params.id)
 		if (!user) {
 			return res.status(401).json({ success: false, msg: "no such user" })
@@ -310,7 +311,25 @@ route.get('/find/:id', authTest, async (req, res) => {
 
 		}
 		const { password, ...others } = user._doc
-		return res.status(201).json({ succsess: true, msg: "request completed successfully", data: others })
+
+		if (user.userType.firm.isFirm) {
+			const firm = await Firm.findById(user.userType.firm.firmId)
+			if (!firm) {
+				return res.status(401).json({ success: false, msg: "couldn't locate firm" })
+			}
+			const data = { ...others, firm }
+			return res.status(201).json({ succsess: true, msg: "request completed successfully", data: data })
+		}
+
+		else if (user.userType.firm.isManufacturer) {
+			const manufacturer = await Manufacturer.findById(user.userType.firm.firmId)
+			if (!manufacturer) {
+				return res.status(401).json({ success: false, msg: "couldn't locate manufacturer data" })
+			}
+			const data = { ...others, manufacturer }
+			return res.status(201).json({ succsess: true, msg: "request completed successfully", data: data })
+		}
+
 	}
 	catch (e) {
 		return res.status(500).json({ success: false, msg: "error on " + e })

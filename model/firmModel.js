@@ -22,7 +22,10 @@ const schema = new mongoose.Schema({
       twitter: { type: Array },
       pinterest: { type: Array },
       websiteLink: {type: Array },
+      instagram: {type: Array},
+      skype: {type: Array}
     },
+
     
     aboutFirm: { type: Array },
     officeCell: { type: String },

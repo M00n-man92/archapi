@@ -60,7 +60,7 @@ route.put('/update/:id/:projectid', authTest, async (req, res) => {
 
       if (!updatedProduct) {
 
-       return res.status(201).json({ success: false, msg: "no project found" })
+        return res.status(201).json({ success: false, msg: "no project found" })
       }
       else if (updatedProduct) {
         console.log("heoolo")
@@ -78,19 +78,21 @@ route.put('/update/:id/:projectid', authTest, async (req, res) => {
   }
 
 })
-route.delete('/delete/:id', authTestAdmin, async (req, res) => {
+route.delete('/delete/:id/:projectId', authTest, async (req, res) => {
   try {
+    const user = await Project.findOneAndDelete({ userId: req.params.id, _id: req.params.projectId })
+    if (user) {
+      return res.status(201).json({ succsess: true, msg: "delted successfully" })
 
-    const product = await Product.findOneAndDelete({ _id: req.params.id })
-    if (product) {
-      console.log("herer")
     }
-    return res.status(201).json({ succsess: true, msg: "delted successfully" })
+    return res.status(502).json({ success: false, msg: "not allowed" })
+  
   }
-  catch (e) {
-    return res.status(500).json({ success: false, msg: "error on " + e })
 
-  }
+  catch (e) {
+  return res.status(500).json({ success: false, msg: "error on " + e })
+
+}
 })
 
 route.get('/find/:id', async (req, res) => {
@@ -115,6 +117,7 @@ route.get('/find', async (req, res) => {
   const qcatagory = req.query.catagory
   const qnew = req.query.new
   const qsex = req.query.sex
+  const qfirm = req.query.firmId
   let product
   console.log(qsex, qcatagory)
   try {
@@ -132,6 +135,10 @@ route.get('/find', async (req, res) => {
     }
     else if (qnew) {
       product = await Project.find().sort({ createdAt: -1 })
+    }
+    else if(qfirm){
+      product = await Project.find({ firmId: qfirm})
+
     }
 
 
