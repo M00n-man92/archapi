@@ -1,47 +1,56 @@
-const mongoose = require("mongoose");
+const mongoose = require("mongoose")
 
-const schema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.ObjectId, ref: 'user' },
-  projects: [{ projectId: { type: mongoose.Schema.ObjectId, ref: 'project' } }],
-  materials: [{ materialId: { type: mongoose.Schema.ObjectId, ref: 'material' } }],
-  products: [{ productId: { type: mongoose.Schema.ObjectId, ref: 'product' } }],
-  logo: { type: String },
-  image: { type: Array },
-  reviewRecieved: [{
-    userId: { type: mongoose.Schema.ObjectId, ref: 'user' },
-    comment: { type: String },
-    value: { type: Number, min: [1], max: [5] }
-  }
-  ],
-  firmInfo: {
-    socialLinks: {
-      facebook: { type: Array },
-      linkedIn: { type: Array },
-      youtube: { type: Array },
-      google: { type: Array },
-      twitter: { type: Array },
-      pinterest: { type: Array },
-      websiteLink: {type: Array },
-      instagram: {type: Array},
-      skype: {type: Array}
-    },
+const schema = new mongoose.Schema(
+  {
+    firmName: { type: String },
+    userId: { type: mongoose.Schema.ObjectId, ref: "user" },
+    projects: [
+      { projectId: { type: mongoose.Schema.ObjectId, ref: "project" } },
+    ],
+    materials: [
+      { materialId: { type: mongoose.Schema.ObjectId, ref: "material" } },
+    ],
+    products: [
+      { productId: { type: mongoose.Schema.ObjectId, ref: "product" } },
+    ],
+    logo: { type: String },
+    image: { type: Array },
+    reviewRecieved: [
+      {
+        image: { type: Array },
+        userId: { type: mongoose.Schema.ObjectId, ref: "user" },
+        comment: { type: String },
+        value: { type: Number, min: [1], max: [5] },
+      },
+    ],
+    catagory: { type: Array },
+    firmInfo: {
+      socialLinks: {
+        facebook: { type: Array },
+        linkedIn: { type: Array },
+        youtube: { type: Array },
+        google: { type: Array },
+        twitter: { type: Array },
+        pinterest: { type: Array },
+        websiteLink: { type: Array },
+        instagram: { type: Array },
+        skype: { type: Array },
+      },
 
-    
-    aboutFirm: { type: Array },
-    officeCell: { type: String },
-    followers: [{type: mongoose.Schema.ObjectId, ref: 'user', unique:true} ],
-    following: [ {type: mongoose.Schema.ObjectId, ref: 'user'} ],
-    region: {
-      country: { type: String },
-      city: [{ location: { type: String } }],
-      street: [{ location: { type: String } }],
+      aboutFirm: { type: Array },
+      officeCell: { type: String },
+      followers: [
+        { type: mongoose.Schema.ObjectId, ref: "user", unique: true },
+      ],
+      following: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
+      region: {
+        country: { type: String },
+        city: [{ location: { type: String } }],
+        street: [{ location: { type: String } }],
+      },
     },
   },
-
-
-
-},
   { timestamps: true }
-);
-const Firm = mongoose.model("firm", schema);
-module.exports = Firm;
+)
+const Firm = mongoose.model("firm", schema)
+module.exports = Firm

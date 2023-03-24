@@ -10,6 +10,8 @@ const authTest = require("./verifyToken").authTest
 const nodemailer = require("nodemailer")
 const gravatar = require("gravatar")
 const { pagination } = require("./pagination")
+
+// create a new blog
 route.post("/create/:id", authTest, async (req, res) => {
   console.log(req.body)
 
@@ -48,10 +50,11 @@ route.post("/create/:id", authTest, async (req, res) => {
   } catch (e) {}
 })
 
-route.put("/update/:id", authTest, async (req, res) => {
+// update a single blog
+route.put("/update/:id/:blogID", authTest, async (req, res) => {
   try {
     const updatedBlog = await Blog.findOneAndUpdate(
-      { _id: req.params.id },
+      { _id: req.params.blogID, "userInfo.userId": req.params.id },
       {
         $set: req.body,
       },
@@ -64,7 +67,7 @@ route.put("/update/:id", authTest, async (req, res) => {
     if (updatedBlog) {
       return res
         .status(201)
-        .json({ success: true, msg: "update complete", data: others })
+        .json({ success: true, msg: "update complete", data: updatedBlog })
     } else {
       return res.status(409).json({
         success: false,
@@ -76,113 +79,77 @@ route.put("/update/:id", authTest, async (req, res) => {
   }
 })
 
+// to get every blog with the help of pagination function
 route.get("/find", pagination(Blog), async (req, res) => {
   const query = req.query.new
   try {
     // const usertype = User.userType.firm.isFirm
 
-    return res
-      .status(201)
-      .json({
-        succsess: true,
-        msg: "loaded successfully",
-        data: res.paginatedResults,
-      })
+    return res.status(201).json({
+      succsess: true,
+      msg: "loaded successfully",
+      data: res.paginatedResults,
+    })
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
-route.get("/find/:id", async (req, res) => {
-  try {
-    const user = await User.findById(req.params.id)
-    if (!user) {
-      return res.status(401).json({ success: false, msg: "no such firm found" })
-    }
 
-    const { password, userType, ...others } = user._doc
-    const { firm } = userType
-    const { firmId } = firm
-    const firmFound = await Firm.findById(firmId)
-    const data = { firm: firmFound, user: others }
-    return res
-      .status(201)
-      .json({ succsess: true, msg: "firm found successfully", data: data })
+//
+route.get("/find/recent", async (req, res) => {
+  const query = req.query.new
+  try {
+    // const usertype = User.userType.firm.isFirm
+    const blog = await Blog.find().sort({ createdAt: -1 }).limit(5)
+    if (!blog) {
+      return res.status(409).json({ success: false, msg: "couldn't get blogs" })
+    }
+    return res.status(201).json({
+      succsess: true,
+      msg: "loaded successfully",
+      data: blog,
+    })
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
-route.get("/find/:id/:nonid", authTest, async (req, res) => {
+
+// find singel blog by id
+route.get("/find/:blogId", async (req, res) => {
   try {
-    const user = await User.findById(req.params.nonid)
-    if (!user) {
-      return res.status(401).json({ success: false, msg: "no such user" })
+    const blog = await Blog.findById(req.params.blogId)
+    if (!blog) {
+      return res
+        .status(401)
+        .json({ success: false, msg: "couldn't fetch such blog." })
     }
-    const { password, ...others } = user._doc
     return res.status(201).json({
       succsess: true,
       msg: "request completed successfully",
-      data: others,
+      data: blog,
     })
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
-route.get("/status", authTest, async (req, res) => {
-  const date = new Date()
-  const lastyear = new Date(date.setFullYear(date.getFullYear() - 1))
+
+// search blog
+route.get("/search", async (req, res) => {
+  const q = req.query.q
   try {
-    const data = await User.aggregate([
-      { $match: { createdAt: { $gte: lastyear } } },
-      { $project: { month: { $month: "$createdAt" } } },
-      { $group: { _id: "$month", total: { $sum: 1 } } },
-    ])
-    return res.status(201).json(data)
-  } catch (e) {
-    return res.status(500).json({ success: false, msg: "errsdfasdfor on " + e })
-  }
-})
-
-route.put("/firmupdate/:token", async (req, res) => {
-  console.log(req.body.password)
-
-  if (req.body.password) {
-    req.body.password = await genert(req.body.password)
-  }
-
-  const token = req.params.token
-  console.log(req.body.password)
-
-  try {
-    const decoded = await jwt.verify(token, process.env.JWT_CONFORMATION_PASS, {
-      complete: true,
-    })
-
-    const id = decoded.payload.id
-    console.log(id)
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: id },
-      {
-        $set: { password: req.body.password },
-      },
-      { new: true }
+    const result = await Blog.find(
+      { title: { $regex: new RegExp(q) } },
+      { _v: 0 }
     )
 
-    if (updatedUser) {
-      console.log("here")
-      console.log(updatedUser)
-      // res.status(301).redirect("http://localhost:5000/login")
-      return res
-        .status(201)
-        .json({ success: true, msg: "update complete, proceed to login page" })
+    if (result.length == 0) {
+      res.json({ msg: "No search results found", success: false })
+      // console.log("kandanchibesteker")
     } else {
-      return res
-        .status(409)
-        .json({ success: false, msg: "something went wrong." })
+      res.json({ msg: "search successfulin", success: true, data: result })
     }
   } catch (e) {
-    return res
-      .status(500)
-      .json({ success: false, msg: "error on pur part. we are on it now" })
+    res.status(500).json({ msg: "failed " + e, success: false })
   }
 })
 

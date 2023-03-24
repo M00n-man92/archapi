@@ -20,23 +20,27 @@ const schema = new mongoose.Schema(
         isFirm: { type: Boolean, default: false },
         firmId: { type: mongoose.Schema.ObjectId, ref: "firm" },
         projects: [{ id: { type: mongoose.Schema.ObjectId, ref: "projects" } }],
+        firmName: { type: String },
       },
       professional: {
         isProfessional: { type: Boolean, default: false },
         professionalId: { type: mongoose.Schema.ObjectId, ref: "professional" },
         works: [{ id: { type: mongoose.Schema.ObjectId, ref: "material" } }],
+        professionalName: { type: String },
       },
       manufacturer: {
         isManufacturer: { type: Boolean, default: false },
         manufacturerId: { type: mongoose.Schema.ObjectId, ref: "manufacturer" },
         products: [{ id: { type: mongoose.Schema.ObjectId, ref: "products" } }],
+        manufacturerName: { type: String },
       },
     },
     followers: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
     following: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
     review: [
       {
-        comments: { type: String },
+        image: { type: Array },
+        comment: { type: String },
         value: { type: Number, min: [1], max: [5] },
         reviewedUser: {
           firm: {
@@ -55,6 +59,29 @@ const schema = new mongoose.Schema(
             manufacturerId: {
               type: mongoose.Schema.ObjectId,
               ref: "manufacturer",
+            },
+          },
+        },
+        reviewedItem: {
+          project: {
+            isProject: { type: Boolean },
+            projectId: {
+              type: mongoose.Schema.ObjectId,
+              ref: "project",
+            },
+          },
+          product: {
+            isProduct: { type: Boolean },
+            productId: {
+              type: mongoose.Schema.ObjectId,
+              ref: "product",
+            },
+          },
+          material: {
+            ismaterial: { type: Boolean },
+            materialId: {
+              type: mongoose.Schema.ObjectId,
+              ref: "material",
             },
           },
         },
