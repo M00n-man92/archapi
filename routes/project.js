@@ -124,7 +124,7 @@ route.post("/newproject/:id", authTest, async (req, res) => {
           ))
         return res.status(201).json({
           success: true,
-          msg: "registered successfully",
+          msg: "created successfully",
           data: newProject,
         })
       } else {
@@ -196,7 +196,9 @@ route.get("/find/:id", async (req, res) => {
   try {
     const product = await Project.findById(req.params.id)
     if (!product) {
-      return res.status(401).json({ success: false, msg: "no such product" })
+      return res
+        .status(401)
+        .json({ success: false, msg: "no such project found" })
     }
 
     return res.status(201).json({
@@ -209,7 +211,7 @@ route.get("/find/:id", async (req, res) => {
   }
 })
 
-// to get every blog with the help of pagination function
+// to get every project with the help of pagination function
 route.get("/find", pagination(Project), async (req, res) => {
   const query = req.query.new
   try {
@@ -331,6 +333,45 @@ route.put("/rateproject/:id/:projectId", authTest, async (req, res) => {
   }
 })
 
+// find the average of the reviews
+route.get("/find/averagereview/:projectId", async (req, res) => {
+  const projectId = req.query.pid
+  const date = new Date()
+  const lastMonth = new Date(date.setMonth(date.getMonth() - 1))
+  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1))
+  try {
+    const average = await Project.aggregate([
+      { $match: { _id: req.params.projectId } },
+      {
+        $group: {
+          _id: "reviewRecieved.$",
+          total: { $sum: "reviewRecieved.$.value" },
+        },
+      },
+    ])
+    return res.status(201).json(average)
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "errsdfasdfor on " + e })
+  }
+})
+
+// find projects a user has made
+route.get("/finduserproject/:id", async (req, res) => {
+  try {
+    const product = await Project.find({ "userInfo.userId": req.params.id })
+    if (!product) {
+      return res.status(401).json({ success: false, msg: "no such product" })
+    }
+
+    return res.status(201).json({
+      succsess: true,
+      msg: "request completed successfully",
+      data: product,
+    })
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+})
 route.get("/find/limit/home", async (req, res) => {
   let product
   // console.log(qsex,qcatagory)

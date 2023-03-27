@@ -10,6 +10,30 @@ const schema = new mongoose.Schema(
       userName: { type: String },
       name: { type: String },
       lastName: { type: String },
+      firm: [
+        {
+          firmName: { type: String },
+          firmId: { type: mongoose.Schema.ObjectId, ref: "firm" },
+        },
+      ],
+      professional: [
+        {
+          professionalName: { type: String },
+          professionalId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "professional",
+          },
+        },
+      ],
+      manufacturer: [
+        {
+          manufacturerName: { type: String },
+          manufacturerId: {
+            type: mongoose.Schema.ObjectId,
+            ref: "manufacturer",
+          },
+        },
+      ],
     },
     reviewRecieved: [
       {

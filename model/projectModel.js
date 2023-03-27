@@ -74,13 +74,11 @@ const schema = new mongoose.Schema(
         userImage: { type: String },
       },
     ],
-    region: [
-      {
-        country: { type: String },
-        city: [{ type: String }],
-        street: [{ type: String }],
-      },
-    ],
+    region: {
+      country: { type: String },
+      city: [{ type: String }],
+      street: [{ type: String }],
+    },
   },
   { timestamps: true }
 )

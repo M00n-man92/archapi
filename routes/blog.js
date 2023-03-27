@@ -2,10 +2,11 @@ const app = require("express")
 const route = app.Router()
 const User = require("../model/userModel")
 const Blog = require("../model/blogModel")
-const genert = require("../auth/password").genpassword
+const Firm = require("../model/firmModel")
+const Manufacturer = require("../model/manufacturerModel")
+const Professional = require("../model/professionalModel")
+
 const validPassword = require("../auth/password").validPassword
-const jwt = require("jsonwebtoken")
-const authTestAdmin = require("./verifyToken").authTestAdmin
 const authTest = require("./verifyToken").authTest
 const nodemailer = require("nodemailer")
 const gravatar = require("gravatar")
@@ -24,30 +25,138 @@ route.post("/create/:id", authTest, async (req, res) => {
         msg: "user doesn't appear to exsist.",
       })
     }
-    console.log(user)
-    const { name, userName, lastName } = user
-    const userInfo = { name, userName, lastName, userId: req.params.id }
-    const blog = new Blog({
-      title,
-      image,
-      source,
-      discription,
-      userInfo,
-    })
-    console.log(blog)
-    const newblog = await blog.save()
-    if (!newblog) {
-      return res.status(501).json({
+    // console.log(user)
+    const { name, userName, lastName, userType } = user
+    const { firm, professional, manufacturer } = userType
+
+    const { isFirm, firmId, firmName } = firm
+    const { isManufacturer, manufacturerId, manufacturerName } = manufacturer
+    const { isProfessional, professionalId, professionalName } = professional
+
+    if (isFirm) {
+      const userInfo = {
+        userName: user.userName,
+        name: user.name,
+        userId: req.params.id,
+        lastName: user.lastName,
+        firm: [{ firmName: firmName, firmId: firmId }],
+      }
+      const blog = new Blog({
+        title,
+        image,
+        source,
+        discription,
+        userInfo,
+      })
+
+      const newblog = await blog.save()
+      newblog &&
+        (await Firm.findOneAndUpdate(
+          { _id: firmId },
+          {
+            $push: {
+              blogs: {
+                blogId: newblog._id,
+              },
+            },
+          },
+          { new: true }
+        ))
+
+      return res.status(201).json({
+        success: true,
+        msg: "registered successfully",
+        data: newblog,
+      })
+    } else if (isProfessional) {
+      const userInfo = {
+        userName: user.userName,
+        name: user.name,
+        userId: req.params.id,
+        lastName: user.lastName,
+        professional: [
+          {
+            professionalName: professionalName,
+            professionalId: professionalId,
+          },
+        ],
+      }
+      const blog = new Blog({
+        title,
+        image,
+        source,
+        discription,
+        userInfo,
+      })
+
+      const newblog = await blog.save()
+      newblog &&
+        (await Professional.findOneAndUpdate(
+          { _id: professionalId },
+          {
+            $push: {
+              blogs: {
+                blogId: newblog._id,
+              },
+            },
+          },
+          { new: true }
+        ))
+
+      return res.status(201).json({
+        success: true,
+        msg: "registered successfully",
+        data: newblog,
+      })
+    } else if (isManufacturer) {
+      const userInfo = {
+        userName: user.userName,
+        name: user.name,
+        userId: req.params.id,
+        lastName: user.lastName,
+        manufacturer: [
+          {
+            manufacturerName: manufacturerName,
+            manufacturerId: manufacturerId,
+          },
+        ],
+      }
+      const blog = new Blog({
+        title,
+        image,
+        source,
+        discription,
+        userInfo,
+      })
+
+      const newblog = await blog.save()
+      newblog &&
+        (await Manufacturer.findOneAndUpdate(
+          { _id: manufacturerId },
+          {
+            $push: {
+              blogs: {
+                blogId: newblog._id,
+              },
+            },
+          },
+          { new: true }
+        ))
+
+      return res.status(201).json({
+        success: true,
+        msg: "registered successfully",
+        data: newblog,
+      })
+    } else {
+      return res.status(409).json({
         success: false,
-        msg: "something went wrong on our part. Trying to fix it now",
+        msg: "user doesn't seem to be a firm or manufacturer or a rofessional",
       })
     }
-    return res.status(201).json({
-      success: true,
-      msg: "blog created successfully",
-      data: newblog,
-    })
-  } catch (e) {}
+  } catch (e) {
+    return res.status(500).json({ success: false, error: e })
+  }
 })
 
 // update a single blog

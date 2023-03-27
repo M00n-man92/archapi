@@ -19,21 +19,24 @@ const schema = new mongoose.Schema(
       firm: {
         isFirm: { type: Boolean, default: false },
         firmId: { type: mongoose.Schema.ObjectId, ref: "firm" },
-        projects: [{ id: { type: mongoose.Schema.ObjectId, ref: "projects" } }],
         firmName: { type: String },
       },
       professional: {
         isProfessional: { type: Boolean, default: false },
         professionalId: { type: mongoose.Schema.ObjectId, ref: "professional" },
-        works: [{ id: { type: mongoose.Schema.ObjectId, ref: "material" } }],
         professionalName: { type: String },
       },
       manufacturer: {
         isManufacturer: { type: Boolean, default: false },
         manufacturerId: { type: mongoose.Schema.ObjectId, ref: "manufacturer" },
-        products: [{ id: { type: mongoose.Schema.ObjectId, ref: "products" } }],
         manufacturerName: { type: String },
       },
+    },
+    creation: {
+      projects: [{ id: { type: mongoose.Schema.ObjectId, ref: "project" } }],
+      materials: [{ id: { type: mongoose.Schema.ObjectId, ref: "material" } }],
+      products: [{ id: { type: mongoose.Schema.ObjectId, ref: "product" } }],
+      blogs: [{ id: { type: mongoose.Schema.ObjectId, ref: "blog" } }],
     },
     followers: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
     following: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
