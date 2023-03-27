@@ -65,7 +65,7 @@ route.post("/create/:id", authTest, async (req, res) => {
 
       return res.status(201).json({
         success: true,
-        msg: "registered successfully",
+        msg: "Created successfully",
         data: newblog,
       })
     } else if (isProfessional) {
@@ -105,7 +105,7 @@ route.post("/create/:id", authTest, async (req, res) => {
 
       return res.status(201).json({
         success: true,
-        msg: "registered successfully",
+        msg: "Created successfully",
         data: newblog,
       })
     } else if (isManufacturer) {
@@ -145,7 +145,7 @@ route.post("/create/:id", authTest, async (req, res) => {
 
       return res.status(201).json({
         success: true,
-        msg: "registered successfully",
+        msg: "Created successfully",
         data: newblog,
       })
     } else {
@@ -232,6 +232,24 @@ route.get("/find/:blogId", async (req, res) => {
         .status(401)
         .json({ success: false, msg: "couldn't fetch such blog." })
     }
+    return res.status(201).json({
+      succsess: true,
+      msg: "request completed successfully",
+      data: blog,
+    })
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+})
+
+// find blogs a user has made
+route.get("/finduserblog/:id", authTest, async (req, res) => {
+  try {
+    const blog = await Blog.find({ "userInfo.userId": req.params.id })
+    if (!blog) {
+      return res.status(401).json({ success: false, msg: "no such blog" })
+    }
+
     return res.status(201).json({
       succsess: true,
       msg: "request completed successfully",
