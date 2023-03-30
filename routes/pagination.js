@@ -1,4 +1,4 @@
-const pagination = (model) => {
+const pagination = (model, firm) => {
   return async (req, res, next) => {
     const page = parseInt(req.query.page)
     const limit = parseInt(req.query.limit)
@@ -22,7 +22,16 @@ const pagination = (model) => {
       }
     }
     try {
-      result.result = await model.find().limit(limit).skip(startIndex).exec()
+      if (firm === "firm") {
+        result.result = await model
+          .find({ "userType.firm.isFirm": true })
+          .limit(limit)
+          .skip(startIndex)
+          .exec()
+      } else {
+        result.result = await model.find().limit(limit).skip(startIndex).exec()
+      }
+
       res.paginatedResults = result
       next()
     } catch (e) {

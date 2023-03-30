@@ -8,6 +8,7 @@ const Professional = require("../model/professionalModel")
 const { pagination } = require("./pagination")
 const authTestAdmin = require("./verifyToken").authTestAdmin
 const authTest = require("./verifyToken").authTest
+const mongoose = require("mongoose")
 
 route.post("/newproduct/:id", authTest, async (req, res) => {
   const newobj = req.body
@@ -217,11 +218,25 @@ route.get("/find/:id", async (req, res) => {
 // find products a user has made
 route.get("/finduserproduct/:id", async (req, res) => {
   try {
-    const product = await Product.find({ "userInfo.userId": req.params.id })
+    // const product = await Product.find({ "userInfo.userId": req.params.id })
+
+    const product = await Product.aggregate([
+      { $match: { "userInfo.userId": mongoose.Types.ObjectId(req.params.id) } },
+
+      {
+        $project: {
+          _id: 1,
+          discription: 1,
+          image: 1,
+          title: 1,
+          // totalcount: { $count: "$reviewRecieved.value" },
+        },
+      },
+    ])
     if (!product) {
       return res.status(401).json({ success: false, msg: "no such product" })
     }
-
+    // const [{ title, discription, image }] = product
     return res.status(201).json({
       succsess: true,
       msg: "request completed successfully",

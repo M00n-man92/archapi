@@ -1,5 +1,6 @@
 const app = require("express")
 const route = app.Router()
+const mongoose = require("mongoose")
 // const Product = require('../model/productModel')
 const Project = require("../model/projectModel")
 const User = require("../model/userModel")
@@ -194,8 +195,36 @@ route.delete("/delete/:id/:projectId", authTest, async (req, res) => {
 // find singel project using req.params.id
 route.get("/find/:id", async (req, res) => {
   try {
-    const product = await Project.findById(req.params.id)
-    if (!product) {
+    console.log(req.params.id)
+    const average = await Project.aggregate([
+      { $match: { _id: mongoose.Types.ObjectId(req.params.id) } },
+
+      {
+        $project: {
+          _id: 1,
+          discription: 1,
+          image: 1,
+          catagory: 1,
+          userInfo: 1,
+          title: 1,
+          material: 1,
+          vr: 1,
+          statusApproved: 1,
+          details: 1,
+          features: 1,
+          createdAt: 1,
+          link: 1,
+          suitedFor: 1,
+          updatedAt: 1,
+          isDigital: 1,
+          reviewRecieved: 1,
+          region: 1,
+          avgRating: { $avg: "$reviewRecieved.value" },
+          // totalcount: { $count: "$reviewRecieved.value" },
+        },
+      },
+    ])
+    if (!average) {
       return res
         .status(401)
         .json({ success: false, msg: "no such project found" })
@@ -204,7 +233,39 @@ route.get("/find/:id", async (req, res) => {
     return res.status(201).json({
       succsess: true,
       msg: "request completed successfully",
-      data: product,
+      data: average,
+    })
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "errsdfasdfor on " + e })
+  }
+})
+
+// find products a user has made
+route.get("/finduserproject/:id", async (req, res) => {
+  try {
+    // const product = await Product.find({ "userInfo.userId": req.params.id })
+
+    const project = await Project.aggregate([
+      { $match: { "userInfo.userId": mongoose.Types.ObjectId(req.params.id) } },
+
+      {
+        $project: {
+          _id: 1,
+          discription: 1,
+          image: 1,
+          title: 1,
+          // totalcount: { $count: "$reviewRecieved.value" },
+        },
+      },
+    ])
+    if (!project) {
+      return res.status(401).json({ success: false, msg: "no such project" })
+    }
+    // const [{ title, discription, image }] = project
+    return res.status(201).json({
+      succsess: true,
+      msg: "request completed successfully",
+      data: project,
     })
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
@@ -290,6 +351,7 @@ route.put("/rateproject/:id/:projectId", authTest, async (req, res) => {
           $push: {
             review: {
               value: req.body.value,
+              comment: req.body.comment,
               reviewedItem: {
                 project: {
                   isProject: true,
@@ -334,18 +396,34 @@ route.put("/rateproject/:id/:projectId", authTest, async (req, res) => {
 })
 
 // find the average of the reviews
-route.get("/find/averagereview/:projectId", async (req, res) => {
-  const projectId = req.query.pid
-  const date = new Date()
-  const lastMonth = new Date(date.setMonth(date.getMonth() - 1))
-  const previousMonth = new Date(new Date().setMonth(lastMonth.getMonth() - 1))
+route.get("/find/averagereview/:id", async (req, res) => {
+  const projectId = req.params.id
+  //
   try {
     const average = await Project.aggregate([
-      { $match: { _id: req.params.projectId } },
+      { $match: { _id: mongoose.Types.ObjectId(projectId) } },
+
       {
-        $group: {
-          _id: "reviewRecieved.$",
-          total: { $sum: "reviewRecieved.$.value" },
+        $project: {
+          _id: 1,
+          discription: 1,
+          image: 1,
+          catagory: 1,
+          userInfo: 1,
+
+          material: 1,
+          vr: 1,
+          statusApproved: 1,
+          details: 1,
+          features: 1,
+
+          link: 1,
+          suitedFor: 1,
+
+          isDigital: 1,
+          reviewRecieved: 1,
+          region: 1,
+          avg_rating: { $avg: "$reviewRecieved.value" },
         },
       },
     ])

@@ -22,13 +22,11 @@ route.post("/register", async (req, res) => {
     const em = await User.findOne({ email })
     const usedUserName = await User.findOne({ userName: username })
     if (em || usedUserName) {
-      return res
-        .status(400)
-        .json({
-          success: false,
-          msg: "email  or username already in use",
-          data: null,
-        })
+      return res.status(400).json({
+        success: false,
+        msg: "email  or username already in use",
+        data: null,
+      })
     }
     const newpass = await genert(password)
 
@@ -110,13 +108,11 @@ route.post("/register", async (req, res) => {
 
           const { _id, password, isAdmin, isConfirmed, ...others } =
             newuser._doc
-          return res
-            .status(201)
-            .json({
-              success: true,
-              msg: "registered successfully, please check your email to login",
-              data: _id,
-            })
+          return res.status(201).json({
+            success: true,
+            msg: "registered successfully, please check your email to login",
+            data: _id,
+          })
         }
       })
     }
@@ -142,12 +138,10 @@ route.post("/login", async (req, res) => {
         .json({ success: false, msg: "Incorrect Credentials", data: null })
     }
     if (user.isConfirmed === false) {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          msg: "please confirm your email by clicking the link provided in your email",
-        })
+      return res.status(409).json({
+        success: false,
+        msg: "please confirm your email by clicking the link provided in your email",
+      })
     } else {
       const realpass = user.password
 
@@ -160,8 +154,7 @@ route.post("/login", async (req, res) => {
       } else {
         const token = jwt.sign(
           { id: user._id, isAdmin: user.isAdmin },
-          process.env.JWT_PASS,
-          { expiresIn: "3d" }
+          process.env.JWT_PASS
         )
 
         const { password, _id, ...others } = user._doc
@@ -174,13 +167,11 @@ route.post("/login", async (req, res) => {
     }
   } catch (e) {
     console.log(e)
-    return res
-      .status(500)
-      .json({
-        success: false,
-        error: e,
-        msg: "we are having an issue with our servers we will get it back soon.",
-      })
+    return res.status(500).json({
+      success: false,
+      error: e,
+      msg: "we are having an issue with our servers we will get it back soon.",
+    })
   }
 })
 route.get("/confirmation/:token", async (req, res) => {
@@ -281,23 +272,19 @@ route.get("/reset/:email", async (req, res) => {
 
       const token = req.params.token
     } else {
-      return res
-        .status(409)
-        .json({
-          success: false,
-          msg: "no user by that email. please check agian",
-        })
+      return res.status(409).json({
+        success: false,
+        msg: "no user by that email. please check agian",
+      })
     }
   } catch (e) {
     console.log(e)
     console.log(e.responce.data)
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "error on our side, we are working on it.",
-        error: e,
-      })
+    return res.status(500).json({
+      success: false,
+      msg: "error on our side, we are working on it.",
+      error: e,
+    })
   }
 })
 
@@ -366,13 +353,11 @@ route.get("/find/:id", authTest, async (req, res) => {
           .json({ success: false, msg: "couldn't locate firm" })
       }
       const data = { ...others, firm }
-      return res
-        .status(201)
-        .json({
-          succsess: true,
-          msg: "request completed successfully",
-          data: data,
-        })
+      return res.status(201).json({
+        succsess: true,
+        msg: "request completed successfully",
+        data: data,
+      })
     } else if (user.userType.firm.isManufacturer) {
       const manufacturer = await Manufacturer.findById(
         user.userType.firm.firmId
@@ -383,13 +368,11 @@ route.get("/find/:id", authTest, async (req, res) => {
           .json({ success: false, msg: "couldn't locate manufacturer data" })
       }
       const data = { ...others, manufacturer }
-      return res
-        .status(201)
-        .json({
-          succsess: true,
-          msg: "request completed successfully",
-          data: data,
-        })
+      return res.status(201).json({
+        succsess: true,
+        msg: "request completed successfully",
+        data: data,
+      })
     }
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
@@ -402,13 +385,11 @@ route.get("/find/:id/:nonid", authTest, async (req, res) => {
       return res.status(401).json({ success: false, msg: "no such user" })
     }
     const { password, ...others } = user._doc
-    return res
-      .status(201)
-      .json({
-        succsess: true,
-        msg: "request completed successfully",
-        data: others,
-      })
+    return res.status(201).json({
+      succsess: true,
+      msg: "request completed successfully",
+      data: others,
+    })
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
@@ -503,13 +484,11 @@ route.put("/ratefirm/:id/:firmId", authTest, async (req, res) => {
       )
       const { review } = updatedReview
       const { reviewRecieved } = firmUpdatedReview
-      return res
-        .status(201)
-        .json({
-          success: true,
-          msg: "update complete",
-          data: { review, reviewRecieved },
-        })
+      return res.status(201).json({
+        success: true,
+        msg: "update complete",
+        data: { review, reviewRecieved },
+      })
     } else {
       console.log("not found")
       const newReview = await User.findOneAndUpdate(
@@ -542,22 +521,18 @@ route.put("/ratefirm/:id/:firmId", authTest, async (req, res) => {
       // console.log(newFirmReview)
       const { review } = newReview
       const { reviewRecieved } = newFirmReview
-      return res
-        .status(201)
-        .json({
-          success: true,
-          msg: "new review set",
-          data: { review, reviewRecieved },
-        })
+      return res.status(201).json({
+        success: true,
+        msg: "new review set",
+        data: { review, reviewRecieved },
+      })
     }
   } catch (e) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "error on pur part. we are on it now",
-        error: e,
-      })
+    return res.status(500).json({
+      success: false,
+      msg: "error on pur part. we are on it now",
+      error: e,
+    })
   }
 })
 
@@ -580,29 +555,23 @@ route.put("/followfirm/:id/:firmId", authTest, async (req, res) => {
     )
     if (followUser) {
       console.log(followUser)
-      return res
-        .status(201)
-        .json({
-          success: true,
-          msg: "you are now following this account",
-          data: followUser,
-        })
+      return res.status(201).json({
+        success: true,
+        msg: "you are now following this account",
+        data: followUser,
+      })
     } else {
-      return res
-        .status(501)
-        .json({
-          success: false,
-          msg: "could follow account something went wrong",
-        })
+      return res.status(501).json({
+        success: false,
+        msg: "could follow account something went wrong",
+      })
     }
   } catch (e) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "error on pur part. we are on it now",
-        error: e,
-      })
+    return res.status(500).json({
+      success: false,
+      msg: "error on pur part. we are on it now",
+      error: e,
+    })
   }
 })
 
@@ -626,25 +595,21 @@ route.put("/unfollowfirm/:id/:firmId", authTest, async (req, res) => {
     )
     if (!foundUser) {
       console.log("didint find it")
-      return res
-        .status(201)
-        .json({
-          success: false,
-          msg: "cant unfollow since you're following account",
-        })
+      return res.status(201).json({
+        success: false,
+        msg: "cant unfollow since you're following account",
+      })
     }
     console.log("found it")
     return res
       .status(201)
       .json({ success: true, msg: "unfollowed successfully", data: foundUser })
   } catch (e) {
-    return res
-      .status(500)
-      .json({
-        success: false,
-        msg: "error on pur part. we are on it now",
-        error: e,
-      })
+    return res.status(500).json({
+      success: false,
+      msg: "error on pur part. we are on it now",
+      error: e,
+    })
   }
 })
 
