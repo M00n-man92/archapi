@@ -38,8 +38,7 @@ const schema = new mongoose.Schema(
       products: [{ id: { type: mongoose.Schema.ObjectId, ref: "product" } }],
       blogs: [{ id: { type: mongoose.Schema.ObjectId, ref: "blog" } }],
     },
-    followers: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
-    following: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
+    following: [{ type: mongoose.Schema.ObjectId }],
     review: [
       {
         image: { type: Array },

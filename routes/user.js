@@ -3,6 +3,7 @@ const route = app.Router()
 const User = require("../model/userModel")
 const Firm = require("../model/firmModel")
 const Manufacturer = require("../model/manufacturerModel")
+const Professional = require("../model/professionalModel")
 // const Professional = require("../model/ProfessionalModel")
 // const Manucaturer = require("../model/")
 const genert = require("../auth/password").genpassword
@@ -14,13 +15,14 @@ const nodemailer = require("nodemailer")
 const gravatar = require("gravatar")
 
 route.post("/register", async (req, res) => {
-  const { name, password, email, username, type, lName, cell, account } =
+  const { name, password, email, userName, type, lastName, cellPhone } =
     req.body
   let firm, manufacturer, professional
   let newFirm, newManufacturer, newProfessional
+  console.log(name, password, email, userName, type, lastName, cellPhone)
   try {
     const em = await User.findOne({ email })
-    const usedUserName = await User.findOne({ userName: username })
+    const usedUserName = await User.findOne({ userName })
     if (em || usedUserName) {
       return res.status(400).json({
         success: false,
@@ -29,23 +31,23 @@ route.post("/register", async (req, res) => {
       })
     }
     const newpass = await genert(password)
-
+    console.log(type)
     const user = new User({
       name: name,
       email: email,
       password: newpass,
-      userName: username,
-      cellPhone: cell,
-      lastName: lName,
+      userName: userName,
+      cellPhone: cellPhone,
+      lastName: lastName,
     })
-
+    console.log(user)
     const avatar = await gravatar.url(user.email, {
       s: "200",
       r: "pg",
       d: "mm",
     })
     user.profilepic = avatar
-    console.log(user)
+    // console.log(user)
     if (type === "firm") {
       user.userType.firm.isFirm = true
       firm = new Firm({ userId: user._id })
@@ -59,13 +61,13 @@ route.post("/register", async (req, res) => {
       manufacturer = await Manufacturer({ userId: user._id })
       newManufacturer = await manufacturer.save()
       user.userType.manufacturer.manufacturerId = newManufacturer._id
+    } else if (type === "professional") {
+      console.log("brave heart energy")
+      user.userType.professional.isProfessional = true
+      professional = await Professional({ userId: user._id })
+      newProfessional = await professional.save()
+      user.userType.professional.professionalId = newProfessional._id
     }
-    // else if( type === "professional"){
-    // 	user.userType.professional.isProfessional=true;
-    // 	professional = await Professional({userId:user._id})
-    // 	newProfessional = await professional.save();
-    // 	user.userType.professional.professioanlId=newProfessional._id;
-    // }
 
     const newuser = await user.save()
     if (newuser) {
@@ -73,8 +75,8 @@ route.post("/register", async (req, res) => {
 
       const token = jwt.sign(
         { id: newuser._id },
-        process.env.JWT_CONFORMATION_PASS,
-        { expiresIn: "1d" }
+        process.env.JWT_CONFORMATION_PASS
+        // { expiresIn: "1d" }
       )
       const url = `http://localhost:5000/api/user/confirmation/${token}`
       console.log(url)
@@ -536,81 +538,9 @@ route.put("/ratefirm/:id/:firmId", authTest, async (req, res) => {
   }
 })
 
-/// route for following firm
-route.put("/followfirm/:id/:firmId", authTest, async (req, res) => {
-  const id = req.params.id
-  const firmId = req.params.firmId
-  try {
-    const foundUser = await Firm.findOne({ userId: id, _id: firmId })
-    if (foundUser) {
-      return res
-        .status(201)
-        .json({ success: false, msg: "cant follow your own accounts" })
-    }
-
-    const followUser = await Firm.findOneAndUpdate(
-      { _id: firmId },
-      { $push: { firmInfo: { followers: req.params.id } } },
-      { new: true }
-    )
-    if (followUser) {
-      console.log(followUser)
-      return res.status(201).json({
-        success: true,
-        msg: "you are now following this account",
-        data: followUser,
-      })
-    } else {
-      return res.status(501).json({
-        success: false,
-        msg: "could follow account something went wrong",
-      })
-    }
-  } catch (e) {
-    return res.status(500).json({
-      success: false,
-      msg: "error on pur part. we are on it now",
-      error: e,
-    })
-  }
-})
-
-// route to unfollow user
-route.put("/unfollowfirm/:id/:firmId", authTest, async (req, res) => {
-  const id = req.params.id
-  const firmId = req.params.firmId
-  try {
-    // const foundUser = await Firm.findOne({ _id: firmId, "firmInfo.followers": req.params.id })
-
-    const foundUser = await Firm.findOneAndUpdate(
-      { _id: firmId, "firmInfo.followers": req.params.id },
-      {
-        $pull: {
-          firmInfo: {
-            followers: req.params.id,
-          },
-        },
-      },
-      { multi: false }
-    )
-    if (!foundUser) {
-      console.log("didint find it")
-      return res.status(201).json({
-        success: false,
-        msg: "cant unfollow since you're following account",
-      })
-    }
-    console.log("found it")
-    return res
-      .status(201)
-      .json({ success: true, msg: "unfollowed successfully", data: foundUser })
-  } catch (e) {
-    return res.status(500).json({
-      success: false,
-      msg: "error on pur part. we are on it now",
-      error: e,
-    })
-  }
+route.post("/passwordcreator", async (req, res) => {
+  const newpass = await genert(req.body.password)
+  res.send(newpass)
 })
 
 module.exports = route

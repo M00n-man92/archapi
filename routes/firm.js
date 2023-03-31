@@ -355,4 +355,124 @@ route.put("/ratefirm/:id/:firmId", authTest, async (req, res) => {
   }
 })
 
+/// route for following firm
+route.put("/followfirm/:id/:firmId", authTest, async (req, res) => {
+  const id = req.params.id
+  const firmId = req.params.firmId
+  try {
+    const foundUser = await Firm.findOne({ userId: id, _id: firmId })
+    const isAlreadyFollowing = await Firm.findOne({
+      _id: firmId,
+      "firmInfo.followers": id,
+    })
+    if (foundUser) {
+      return res
+        .status(201)
+        .json({ success: false, msg: "cant follow your own accounts" })
+    }
+    if (isAlreadyFollowing) {
+      return res
+        .status(201)
+        .json({ success: false, msg: "already following the firm" })
+    }
+    const followUser = await Firm.findOneAndUpdate(
+      { _id: firmId },
+      { $push: { "firmInfo.followers": req.params.id } },
+      { new: true }
+    )
+    if (followUser) {
+      console.log(followUser)
+      const userFollowing = await User.findOneAndUpdate(
+        { _id: id },
+        { $push: { following: firmId } },
+        { new: true }
+      )
+      if (!userFollowing) {
+        return res.status(409).json({
+          success: false,
+          msg: "you are now following this account it just isn'r added",
+          data: followUser,
+        })
+      }
+      const { firmInfo } = followUser
+      const { followers } = firmInfo
+      const { following } = userFollowing
+      return res.status(201).json({
+        success: true,
+        msg: "you are now following this account",
+        data: { followers, following },
+      })
+    } else {
+      return res.status(501).json({
+        success: false,
+        msg: "could follow account something went wrong",
+      })
+    }
+  } catch (e) {
+    return res.status(500).json({
+      success: false,
+      msg: "error on pur part. we are on it now",
+      error: e,
+    })
+  }
+})
+
+// route to unfollow user
+route.put("/unfollowfirm/:id/:firmId", authTest, async (req, res) => {
+  const id = req.params.id
+  const firmId = req.params.firmId
+  try {
+    // const foundUser = await Firm.findOne({ _id: firmId, "firmInfo.followers": req.params.id })
+    const foundUser = await Firm.findOneAndUpdate(
+      { _id: firmId, "firmInfo.followers": req.params.id },
+      {
+        $pull: {
+          "firmInfo.followers": req.params.id,
+        },
+      },
+      { multi: false, upsert: false }
+    )
+    console.log(foundUser)
+    if (!foundUser) {
+      console.log("didint find it")
+      return res.status(201).json({
+        success: false,
+        msg: "cant unfollow since you're not following account",
+      })
+    }
+    const user = await User.findOneAndUpdate(
+      { _id: req.params.id, following: firmId },
+      {
+        $pull: { following: firmId },
+      },
+      { multi: false, upsert: false }
+    )
+    if (!user) {
+      console.log("coundn't find user following firm")
+      return res.status(201).json({
+        success: false,
+        msg: "coundn't find user following firm",
+      })
+    }
+    console.log("found it")
+
+    const { firmInfo } = foundUser
+    const { followers } = firmInfo
+    const { following } = user
+
+    return res.status(201).json({
+      success: true,
+      msg: "unfollowed successfully",
+      data: { followers, following },
+    })
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({
+      success: false,
+      msg: "error on pur part. we are on it now",
+      error: e,
+    })
+  }
+})
+
 module.exports = route

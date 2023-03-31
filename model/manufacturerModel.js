@@ -3,7 +3,7 @@ const mongoose = require("mongoose")
 const schema = new mongoose.Schema(
   {
     manufacturerName: { type: String },
-    discription:{type:Array},
+    discription: { type: Array },
     userId: { type: mongoose.Schema.ObjectId, ref: "user" },
     projects: [
       { projectId: { type: mongoose.Schema.ObjectId, ref: "project" } },
@@ -41,7 +41,6 @@ const schema = new mongoose.Schema(
 
       officeCell: { type: String },
       followers: [{ id: { type: mongoose.Schema.ObjectId, ref: "user" } }],
-      following: [{ id: { type: mongoose.Schema.ObjectId, ref: "user" } }],
       region: [
         {
           country: { type: String },

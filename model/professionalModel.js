@@ -40,7 +40,6 @@ const schema = new mongoose.Schema(
       aboutProfessional: { type: Array },
       officeCell: { type: String },
       followers: [{ id: { type: mongoose.Schema.ObjectId, ref: "user" } }],
-      following: [{ id: { type: mongoose.Schema.ObjectId, ref: "user" } }],
       region: [
         {
           country: { type: String },
