@@ -19,10 +19,14 @@ const schema = new mongoose.Schema(
     image: { type: Array },
     reviewRecieved: [
       {
-        image: { type: Array },
+        image: { type: String },
         userId: { type: mongoose.Schema.ObjectId, ref: "user" },
         comment: { type: String },
         value: { type: Number, min: [1], max: [5] },
+        userName: { type: String },
+        name: { type: String },
+        lastName: { type: String },
+        userImage: { type: String },
       },
     ],
     catagory: { type: Array },
@@ -40,7 +44,7 @@ const schema = new mongoose.Schema(
       aboutManufacturer: { type: Array },
 
       officeCell: { type: String },
-      followers: [{ id: { type: mongoose.Schema.ObjectId, ref: "user" } }],
+      followers: [{ type: mongoose.Schema.ObjectId, ref: "user" }],
       region: [
         {
           country: { type: String },

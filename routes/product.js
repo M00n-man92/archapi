@@ -219,7 +219,7 @@ route.get("/find/:id", async (req, res) => {
 route.get("/finduserproduct/:id", async (req, res) => {
   try {
     // const product = await Product.find({ "userInfo.userId": req.params.id })
-
+    console.log(req.params.id)
     const product = await Product.aggregate([
       { $match: { "userInfo.userId": mongoose.Types.ObjectId(req.params.id) } },
 
