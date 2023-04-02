@@ -33,7 +33,7 @@ route.put("/update/:id", authTest, async (req, res) => {
     if (updatedUser) {
       const { password, _id, token, userType, ...others } = updatedUser._doc
       const { professional } = userType
-      const { professionalId } = firm
+      const { professionalId } = professional
       const updatedProfessional = await Professional.findOneAndUpdate(
         { _id: professionalId },
         {

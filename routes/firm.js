@@ -39,7 +39,8 @@ route.put("/update/:id", authTest, async (req, res) => {
         { _id: firmId },
         {
           $set: req.body,
-        }
+        },
+        { new: true }
       )
       // console.log(updatedFirm)
       if (updatedFirm) {

@@ -30,7 +30,7 @@ route.put("/update/:id", authTest, async (req, res) => {
     if (updatedUser) {
       const { password, _id, token, userType, ...others } = updatedUser._doc
       const { manufacturer } = userType
-      const { manufacturerId } = firm
+      const { manufacturerId } = manufacturer
       const updatedManufacturer = await Manufacturer.findOneAndUpdate(
         { _id: manufacturerId },
         {
