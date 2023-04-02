@@ -229,10 +229,11 @@ route.get("/finduserproduct/:id", async (req, res) => {
           discription: 1,
           image: 1,
           title: 1,
-          // totalcount: { $count: "$reviewRecieved.value" },
+          // totalcount: { $avg: "$reviewRecieved.value" },
         },
       },
     ])
+    console.log(product)
     if (!product) {
       return res.status(401).json({ success: false, msg: "no such product" })
     }
