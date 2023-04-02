@@ -337,6 +337,7 @@ route.get("/find", authTestAdmin, async (req, res) => {
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
+
 route.get("/find/:id", authTest, async (req, res) => {
   console.log(req.params.id)
   try {
@@ -370,6 +371,21 @@ route.get("/find/:id", authTest, async (req, res) => {
           .json({ success: false, msg: "couldn't locate manufacturer data" })
       }
       const data = { ...others, manufacturer }
+      return res.status(201).json({
+        succsess: true,
+        msg: "request completed successfully",
+        data: data,
+      })
+    } else if (user.userType.firm.isProfessional) {
+      const professional = await Professional.findById(
+        user.userType.firm.firmId
+      )
+      if (!professional) {
+        return res
+          .status(401)
+          .json({ success: false, msg: "couldn't locate professional data" })
+      }
+      const data = { ...others, professional }
       return res.status(201).json({
         succsess: true,
         msg: "request completed successfully",
@@ -453,94 +469,6 @@ route.put("/userupdate/:token", async (req, res) => {
       .status(500)
       .json({ success: false, msg: "error on pur part. we are on it now" })
   }
-})
-
-/// route for rating firm
-route.put("/ratefirm/:id/:firmId", authTest, async (req, res) => {
-  // console.log(req.body)
-  const firmId = req.params.firmId
-  try {
-    // const userReview = User.findOne({ "review.reviewedUser.firmId": req.params.firmId })
-
-    const updatedReview = await User.findOneAndUpdate(
-      {
-        _id: req.params.id,
-        "review.reviewedUser.firm.firmId": req.params.firmId,
-      },
-      { $set: { review: { value: req.body.value } } },
-      {
-        new: true,
-      }
-    )
-    // console.log("here")
-    // console.log(updatedReview)
-    if (updatedReview) {
-      const firmUpdatedReview = await Firm.findOneAndUpdate(
-        { _id: req.params.firmId, "reviewRecieved.userId": req.params.id },
-        {
-          $set: {
-            reviewRecieved: { userId: req.params.id, value: req.body.value },
-          },
-        },
-        { new: true }
-      )
-      const { review } = updatedReview
-      const { reviewRecieved } = firmUpdatedReview
-      return res.status(201).json({
-        success: true,
-        msg: "update complete",
-        data: { review, reviewRecieved },
-      })
-    } else {
-      console.log("not found")
-      const newReview = await User.findOneAndUpdate(
-        { _id: req.params.id },
-        {
-          $push: {
-            review: {
-              value: req.body.value,
-              reviewedUser: {
-                firm: {
-                  isFirm: true,
-                  firmId: firmId,
-                },
-              },
-            },
-          },
-        },
-        { new: true }
-      )
-      // console.log(newReview)
-      const newFirmReview = await Firm.findOneAndUpdate(
-        { _id: req.params.firmId },
-        {
-          $push: {
-            reviewRecieved: { userId: req.params.id, value: req.body.value },
-          },
-        },
-        { new: true }
-      )
-      // console.log(newFirmReview)
-      const { review } = newReview
-      const { reviewRecieved } = newFirmReview
-      return res.status(201).json({
-        success: true,
-        msg: "new review set",
-        data: { review, reviewRecieved },
-      })
-    }
-  } catch (e) {
-    return res.status(500).json({
-      success: false,
-      msg: "error on pur part. we are on it now",
-      error: e,
-    })
-  }
-})
-
-route.post("/passwordcreator", async (req, res) => {
-  const newpass = await genert(req.body.password)
-  res.send(newpass)
 })
 
 module.exports = route
