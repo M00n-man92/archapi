@@ -25,12 +25,12 @@ const manufacturer = require("./routes/manufacturer")
 app.use(
   cors({
     credentials: true,
-    origin: process.env.REMOTE_CLIENT_APP,
+    origin: true,
   })
 )
 
 app.get("/api/test", () => {
-  console.log(process.env.REMOTE_CLIENT_APP)
+  console.log("this works")
 })
 app.use("/api/user", user)
 app.use("/api/firm", firm)
