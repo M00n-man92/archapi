@@ -15,7 +15,7 @@ const Products = require("../model/productModel")
 const { pagination } = require("./pagination")
 route.put("/update/:id", authTest, async (req, res) => {
   console.log("there is only one here")
-  console.log(req.body.password)
+  console.log(req.body)
   if (req.body.password) {
     req.body.password = await genert(req.body.password)
   }
@@ -27,22 +27,22 @@ route.put("/update/:id", authTest, async (req, res) => {
       },
       { new: true }
     )
-    // console.log(updatedUser)
+    console.log(updatedUser)
 
     // if (req.body.firmInfo||req.body.logo||req.body.image||aboutFirm)
     if (updatedUser) {
       const { password, _id, token, userType, ...others } = updatedUser._doc
       const { firm } = userType
       const { firmId } = firm
-      console.log(firm)
-      const updatedFirm = await Firm.findOneAndUpdate(
+      console.log(firmId)
+      const updatedFirm = await Firm.updateOne(
         { _id: firmId },
         {
           $set: req.body,
         },
         { new: true }
       )
-      // console.log(updatedFirm)
+      console.log(updatedFirm)
       if (updatedFirm) {
         return res.status(201).json({
           success: true,

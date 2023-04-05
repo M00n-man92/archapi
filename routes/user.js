@@ -347,23 +347,25 @@ route.get("/find/:id", authTest, async (req, res) => {
       return res.status(401).json({ success: false, msg: "no such user" })
     }
     const { password, ...others } = user._doc
-
+    console.log("user fonid")
     if (user.userType.firm.isFirm) {
       const firm = await Firm.findById(user.userType.firm.firmId)
       if (!firm) {
+        console.log()
         return res
           .status(401)
           .json({ success: false, msg: "couldn't locate firm" })
       }
+      console.log("firm foind")
       const data = { ...others, firm }
       return res.status(201).json({
         succsess: true,
         msg: "request completed successfully",
         data: data,
       })
-    } else if (user.userType.firm.isManufacturer) {
+    } else if (user.userType.manufacturer.isManufacturer) {
       const manufacturer = await Manufacturer.findById(
-        user.userType.firm.firmId
+        user.userType.manufacturer.manufacturerId
       )
       if (!manufacturer) {
         return res
@@ -376,11 +378,12 @@ route.get("/find/:id", authTest, async (req, res) => {
         msg: "request completed successfully",
         data: data,
       })
-    } else if (user.userType.firm.isProfessional) {
+    } else if (user.userType.professional.isProfessional) {
       const professional = await Professional.findById(
-        user.userType.firm.firmId
+        user.userType.professional.professionalId
       )
       if (!professional) {
+        console.log("professional not fonid")
         return res
           .status(401)
           .json({ success: false, msg: "couldn't locate professional data" })
