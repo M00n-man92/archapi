@@ -78,7 +78,7 @@ route.post("/register", async (req, res) => {
         process.env.JWT_CONFORMATION_PASS
         // { expiresIn: "1d" }
       )
-      const url = `http://localhost:5000/api/user/confirmation/${token}`
+      const url = `https://node.niddf.com/api/user/confirmation/${token}`
       console.log(url)
 
       let transporter = nodemailer.createTransport({
@@ -194,7 +194,7 @@ route.get("/confirmation/:token", async (req, res) => {
 
       //    http://localhost:5000/login
       // http://localhost:5000/authentication/sign-in
-      res.status(301).redirect("https://SheramiDev.org")
+      res.status(301).redirect("https://niddf.com/")
     }
   } catch (e) {
     return res.status(500).json({ success: false, msg: "error on " + e })
@@ -214,9 +214,7 @@ route.get("/recharge/:token", async (req, res) => {
     console.log(decoded)
     // http://localhost:5000/forgot/${token}
     // https://leyuclothing.herokuapp.com/forgot/${token}
-    res
-      .status(301)
-      .redirect(`http://localhost:5000/authentication/change/${token}`)
+    res.status(301).redirect(`https://niddf.com/authentication/change/${token}`)
   } catch (e) {
     return res
       .status(500)
@@ -237,7 +235,7 @@ route.get("/reset/:email", async (req, res) => {
         { expiresIn: "1d" }
       )
       // const url = `http://localhost:5000/api/user/recharge/${emailtoken}`
-      const url = `http://localhost:5000/api/user/recharge/${tokenn}`
+      const url = `https://node.niddf.com/api/user/recharge/${tokenn}`
       let transporter = nodemailer.createTransport({
         host: "smtp-mail.outlook.com",
         port: 587,
