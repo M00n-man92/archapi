@@ -65,9 +65,20 @@ route.put("/update/:id", authTest, async (req, res) => {
   }
 })
 
-route.get("/find/firmpage", async (req, res) => {
-  // pagination(User, "firm"),
+route.get("/find/firmpage", pagination(User, "firm"), async (req, res) => {
   const query = req.query.new
+  try {
+    // const usertype = User.userType.firm.isFirm
+
+    return res.status(201).json({
+      succsess: true,
+      msg: "loaded successfully",
+      data: res.paginatedResults,
+    })
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+  /* const query = req.query.new
   try {
     const firm = await User.aggregate([
       { $match: { "userType.firm.isFirm": true } },
@@ -111,7 +122,7 @@ route.get("/find/firmpage", async (req, res) => {
   } catch (e) {
     console.log(e)
     return res.status(500).json({ success: false, msg: "error on " + e })
-  }
+  } */
 })
 
 // get singel firms in the db

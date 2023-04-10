@@ -65,9 +65,23 @@ route.put("/update/:id", authTest, async (req, res) => {
   }
 })
 
-route.get("/find/professionalpage", async (req, res) => {
-  // pagination(User, "firm"),
-  const query = req.query.new
+route.get(
+  "/find/professionalpage",
+  pagination(User, "professional"),
+  async (req, res) => {
+    const query = req.query.new
+    try {
+      // const usertype = User.userType.firm.isFirm
+
+      return res.status(201).json({
+        succsess: true,
+        msg: "loaded successfully",
+        data: res.paginatedResults,
+      })
+    } catch (e) {
+      return res.status(500).json({ success: false, msg: "error on " + e })
+    }
+    /* const query = req.query.new
   try {
     const professional = await User.aggregate([
       { $match: { "userType.professional.isProfessional": true } },
@@ -111,8 +125,9 @@ route.get("/find/professionalpage", async (req, res) => {
   } catch (e) {
     console.log(e)
     return res.status(500).json({ success: false, msg: "error on " + e })
+  } */
   }
-})
+)
 
 // get singel firms in the db
 route.get("/find/singlepage/:id", async (req, res) => {

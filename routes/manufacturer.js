@@ -62,54 +62,25 @@ route.put("/update/:id", authTest, async (req, res) => {
   }
 })
 
-route.get("/find/manufacturerpage", async (req, res) => {
-  // pagination(User, "firm"),
-  const query = req.query.new
-  try {
-    const manufacturer = await User.aggregate([
-      { $match: { "userType.manufacturer.isManufacturer": true } },
-      {
-        $lookup: {
-          from: "manufacturers",
-          localField: "userType.manufacturer.manufacturerId",
-          foreignField: "_id",
-          as: "manufacturerData",
-        },
-      },
-      {
-        $project: {
-          _id: 1,
-          name: 1,
-          userName: 1,
-          profilepic: 1,
-          createdAt: 1,
-          updatedAt: 1,
-          manufacturerData: {
-            image: 1,
-            catagory: 1,
-            logo: 1,
-            projects: 1,
-            reviewRecieved: 1,
-            aboutManufacturer: 1,
-            projects: 1,
-            reviewRecieved: 1,
-            createdAt: 1,
-            updatedAt: 1,
-          },
-        },
-      },
-      // { $project: { avgRating: { $avg: "firmData.$reviewRecieved.value" } } },
-    ])
-    return res.status(201).json({
-      succsess: true,
-      msg: "loaded successfully",
-      data: manufacturer,
-    })
-  } catch (e) {
-    console.log(e)
-    return res.status(500).json({ success: false, msg: "error on " + e })
+route.get(
+  "/find/manufacturerpage",
+  pagination(User, "manufacturer"),
+  async (req, res) => {
+    // pagination(User, "firm"),
+    const query = req.query.new
+    try {
+      // const usertype = User.userType.firm.isFirm
+
+      return res.status(201).json({
+        succsess: true,
+        msg: "loaded successfully",
+        data: res.paginatedResults,
+      })
+    } catch (e) {
+      return res.status(500).json({ success: false, msg: "error on " + e })
+    }
   }
-})
+)
 
 // get singel firms in the db
 route.get("/find/singlepage/:id", async (req, res) => {

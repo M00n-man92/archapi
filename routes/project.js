@@ -53,7 +53,7 @@ route.post("/newproject/:id", authTest, async (req, res) => {
           ))
         return res.status(201).json({
           success: true,
-          msg: "registered successfully",
+          msg: "created successfully",
           data: project,
         })
       } else if (isProfessional) {
@@ -89,7 +89,7 @@ route.post("/newproject/:id", authTest, async (req, res) => {
           ))
         return res.status(201).json({
           success: true,
-          msg: "registered successfully",
+          msg: "created successfully",
           data: newProject,
         })
       } else if (isManufacturer) {
