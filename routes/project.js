@@ -254,6 +254,9 @@ route.get("/finduserproject/:id", async (req, res) => {
           discription: 1,
           image: 1,
           title: 1,
+          createdAt: 1,
+          updatedAt: 1,
+          catagory: 1,
           // totalcount: { $count: "$reviewRecieved.value" },
         },
       },
@@ -433,23 +436,6 @@ route.get("/find/averagereview/:id", async (req, res) => {
   }
 })
 
-// find projects a user has made
-route.get("/finduserproject/:id", async (req, res) => {
-  try {
-    const product = await Project.find({ "userInfo.userId": req.params.id })
-    if (!product) {
-      return res.status(401).json({ success: false, msg: "no such product" })
-    }
-
-    return res.status(201).json({
-      succsess: true,
-      msg: "request completed successfully",
-      data: product,
-    })
-  } catch (e) {
-    return res.status(500).json({ success: false, msg: "error on " + e })
-  }
-})
 route.get("/find/limit/home", async (req, res) => {
   let product
   // console.log(qsex,qcatagory)
