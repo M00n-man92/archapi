@@ -102,7 +102,12 @@ const pagination = (model, firm) => {
           .limit(limit)
           .exec()
       } else {
-        result.result = await model.find().limit(limit).skip(startIndex).exec()
+        result.result = await model
+          .find()
+          .limit(limit)
+          .skip(startIndex)
+          .sort({ $natural: -1 })
+          .exec()
       }
 
       res.paginatedResults = result

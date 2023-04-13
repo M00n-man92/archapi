@@ -197,7 +197,54 @@ route.get("/find", pagination(Product), async (req, res) => {
   }
 })
 
-// get a specific product
+// find singel product using req.params.id
+route.get("/find/:id", async (req, res) => {
+  try {
+    console.log(req.params.id)
+    const average = await Product.aggregate([
+      { $match: { _id: mongoose.Types.ObjectId(req.params.id) } },
+
+      {
+        $project: {
+          associate_color: 1,
+          catagory: 1,
+          color: 1,
+          createdAt: 1,
+          discription: 1,
+          image: 1,
+          inStock: 1,
+          materials: 1,
+          price: 1,
+          reviewRecieved: 1,
+          size: 1,
+          statusApproved: 1,
+          style: 1,
+          title: 1,
+          updatedAt: 1,
+          userInfo: 1,
+          __v: 1,
+          _id: 1,
+          avgRating: { $avg: "$reviewRecieved.value" },
+          // totalcount: { $count: "$reviewRecieved.value" },
+        },
+      },
+    ])
+    if (!average) {
+      return res
+        .status(401)
+        .json({ success: false, msg: "no such product found" })
+    }
+
+    return res.status(201).json({
+      succsess: true,
+      msg: "request completed successfully",
+      data: average,
+    })
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "errsdfasdfor on " + e })
+  }
+})
+/* // get a specific product
 route.get("/find/:id", async (req, res) => {
   try {
     const product = await Product.findById(req.params.id)
@@ -214,7 +261,7 @@ route.get("/find/:id", async (req, res) => {
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
-
+ */
 // find products a user has made
 route.get("/finduserproduct/:id", async (req, res) => {
   try {
@@ -244,6 +291,7 @@ route.get("/finduserproduct/:id", async (req, res) => {
       data: product,
     })
   } catch (e) {
+    console.log(e)
     return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
@@ -320,27 +368,6 @@ route.get("/search", async (req, res) => {
       { title: { $regex: new RegExp(q) } },
       { _v: 0 }
     )
-    // const result = await Product.find({
-    //     $match: {
-    //         $or: [
-    //             {
-    //                 title: {
-    //                     $regex: new RegExp(q),
-    //                     // $options: i
-    //                 }
-    //             },
-    //             {
-    //                 catagory: {
-    //                     $regex: new RegExp(q),
-    //                     // $options: i
-    //                 }
-    //             }
-    //         ]
-    //     }},{_id:0,_v:0})
-    // if (result.length>=0) {
-    //     res.json({ msg: "search successfulin", success: true, data: result })
-    // }
-    // console.log(result)
     if (result.length == 0) {
       res.json({ msg: "No search results found", success: false })
       // console.log("kandanchibesteker")
@@ -349,6 +376,111 @@ route.get("/search", async (req, res) => {
     }
   } catch (e) {
     res.status(500).json({ msg: "failed " + e, success: false })
+  }
+})
+
+// route to rate products
+route.put("/rateproduct/:id/:productId", authTest, async (req, res) => {
+  console.log(req.body)
+  const productId = req.params.productId
+  try {
+    const updatedReview = await User.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        "review.reviewedItem.product.productId": req.params.productId,
+      },
+
+      {
+        $set: {
+          "review.$.value": req.body.value,
+          "review.$.comment": req.body.comment,
+        },
+      },
+      { upsert: true }
+    )
+    console.log("update revie user in progress")
+    console.log(updatedReview)
+    if (updatedReview) {
+      const productUpdatedReview = await Product.findOneAndUpdate(
+        { _id: req.params.productId, "reviewRecieved.userId": req.params.id },
+        {
+          $set: {
+            "reviewRecieved.$.userId": req.params.id,
+            "reviewRecieved.$.value": req.body.value,
+            "reviewRecieved.$.comment": req.body.comment,
+            "reviewRecieved.$.image": req.body.image,
+            "reviewRecieved.$.name": updatedReview.name,
+            "reviewRecieved.$.lastName": updatedReview.lastName,
+            "reviewRecieved.$.userImage": updatedReview.profilepic,
+          },
+        },
+        { upsert: true }
+      )
+      const { review } = updatedReview
+      const { reviewRecieved } = productUpdatedReview
+      return res.status(201).json({
+        success: true,
+        msg: "update complete",
+        data: { review, reviewRecieved },
+      })
+    }
+  } catch (e) {
+    // console.log(e)
+    const error = e.toString()
+    const isError = error.indexOf("MongoServerError: Plan executor error")
+    console.log(isError)
+    if (isError === -1) {
+      console.log(e)
+      return res.status(500).json({ success: false, msg: "error on " + e })
+    } else {
+      console.log("review not found")
+      const newReview = await User.findOneAndUpdate(
+        { _id: req.params.id },
+        {
+          $push: {
+            review: {
+              value: req.body.value,
+              comment: req.body.comment,
+              reviewedItem: {
+                product: {
+                  isProduct: true,
+                  productId: req.params.productId,
+                },
+              },
+            },
+          },
+        },
+        { new: true }
+      )
+      console.log("ne review here")
+      console.log(newReview)
+      const newProductReview = await Product.findOneAndUpdate(
+        { _id: req.params.productId },
+        {
+          $push: {
+            reviewRecieved: {
+              userId: req.params.id,
+              value: req.body.value,
+              comment: req.body.comment,
+              image: req.body.image,
+              userName: newReview.userName,
+              name: newReview.name,
+              lastName: newReview.lastName,
+              userImage: newReview.profilepic,
+            },
+          },
+        },
+        { new: true }
+      )
+      // console.log(newFirmReview)
+      const { review } = newReview
+      const { reviewRecieved } = newProductReview
+      return res.status(201).json({
+        success: true,
+        msg: "new review set",
+        data: { review, reviewRecieved },
+      })
+    }
   }
 })
 
