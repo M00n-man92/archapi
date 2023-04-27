@@ -489,4 +489,76 @@ route.put("/rateproduct/:id/:productId", authTest, async (req, res) => {
   }
 })
 
+// delete
+route.delete("/delete/:id/:productId", authTest, async (req, res) => {
+  try {
+    const product = await Product.findOne({ _id: req.params.productId })
+    // console.log(product)
+    if (product) {
+      const { userInfo } = product
+      if (userInfo.firm[0]) {
+        const firm = await Firm.findOneAndUpdate(
+          { _id: userInfo.firm[0].firmId },
+          {
+            $pull: { products: { productId: req.params.productId } },
+          },
+          { new: true }
+        )
+        console.log(firm)
+        await product.deleteOne({ _id: req.params.productId })
+
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { firm, product },
+        })
+      } else if (userInfo.professional[0]) {
+        const professional = await Professional.findOneAndUpdate(
+          { _id: userInfo.professional[0].professionalId },
+          {
+            $pull: { products: { productId: req.params.productId } },
+          },
+          { new: true }
+        )
+        await product.deleteOne({ _id: req.params.productId })
+        // const deletedproduct = await product.findOneAndDelete({ _id: req.params.productId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { professional, product },
+        })
+      } else if (userInfo.manufacturer[0]) {
+        const manufacturer = await Manufacturer.findOneAndUpdate(
+          { _id: userInfo.manufacturer[0].manufacturerId },
+          {
+            $pull: { products: { productId: req.params.productId } },
+          },
+          { new: true }
+        )
+        await product.deleteOne({ _id: req.params.productId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { manufacturer, product },
+        })
+      } else {
+        console.log(
+          "something is wrong since it couldn't find the user which created it"
+        )
+        return res.status(409).json({
+          succsess: false,
+          msg: "user cannot delete the product",
+        })
+      }
+    }
+
+    return res
+      .status(501)
+      .json({ succsess: false, msg: "could't find the product" })
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+})
+
 module.exports = route

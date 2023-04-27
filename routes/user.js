@@ -39,6 +39,7 @@ route.post("/register", async (req, res) => {
       userName: userName,
       cellPhone: cellPhone,
       lastName: lastName,
+      isConfirmed: true,
     })
     console.log(user)
     const avatar = await gravatar.url(user.email, {
@@ -50,7 +51,7 @@ route.post("/register", async (req, res) => {
     // console.log(user)
     if (type === "firm") {
       user.userType.firm.isFirm = true
-      firm = new Firm({ userId: user._id })
+      firm = await Firm({ userId: user._id })
       newFirm = await firm.save()
       user.userType.firm.firmId = newFirm._id
     }
@@ -78,7 +79,14 @@ route.post("/register", async (req, res) => {
         process.env.JWT_CONFORMATION_PASS
         // { expiresIn: "1d" }
       )
-      const url = `https://node.niddf.com/api/user/confirmation/${token}`
+      const { _id, password, isAdmin, isConfirmed, ...others } = newuser._doc
+
+      return res.status(201).json({
+        success: true,
+        msg: "Registered successfuly",
+        data: _id,
+      })
+      /* const url = `https://node.niddf.com/api/user/confirmation/${token}`
       console.log(url)
 
       let transporter = nodemailer.createTransport({
@@ -116,7 +124,7 @@ route.post("/register", async (req, res) => {
             data: _id,
           })
         }
-      })
+      }) */
     }
   } catch (e) {
     return res.status(500).json({ success: false, error: e })

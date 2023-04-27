@@ -280,4 +280,76 @@ route.get("/search", async (req, res) => {
   }
 })
 
+// delete
+route.delete("/delete/:id/:blogId", authTest, async (req, res) => {
+  console.log(req.params.id, req.params._id)
+  try {
+    const blog = await Blog.findOne({ _id: req.params.blogId })
+    // console.log(blog)
+    if (blog) {
+      const { userInfo } = blog
+      if (userInfo.firm[0]) {
+        const firm = await Firm.findOneAndUpdate(
+          { _id: userInfo.firm[0].firmId },
+          {
+            $pull: { blogs: { blogId: req.params.blogId } },
+          },
+          { new: true }
+        )
+        console.log(firm)
+        await blog.deleteOne({ _id: req.params.blogId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { firm, blog },
+        })
+      } else if (userInfo.professional[0]) {
+        const professional = await Professional.findOneAndUpdate(
+          { _id: userInfo.professional[0].professionalId },
+          {
+            $pull: { blogs: { blogId: req.params.blogId } },
+          },
+          { new: true }
+        )
+        await blog.deleteOne({ _id: req.params.blogId })
+        // const deletedblog = await blog.findOneAndDelete({ _id: req.params.blogId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { professional, blog },
+        })
+      } else if (userInfo.manufacturer[0]) {
+        const manufacturer = await Manufacturer.findOneAndUpdate(
+          { _id: userInfo.manufacturer[0].manufacturerId },
+          {
+            $pull: { blogs: { blogId: req.params.blogId } },
+          },
+          { new: true }
+        )
+        await blog.deleteOne({ _id: req.params.blogId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { manufacturer, blog },
+        })
+      } else {
+        console.log(
+          "something is wrong since it couldn't find the user which created it"
+        )
+        return res.status(409).json({
+          succsess: false,
+          msg: "user cannot delete the project",
+        })
+      }
+    }
+
+    return res
+      .status(501)
+      .json({ succsess: false, msg: "could't find the project" })
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+})
+
 module.exports = route

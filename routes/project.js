@@ -1,7 +1,7 @@
 const app = require("express")
 const route = app.Router()
 const mongoose = require("mongoose")
-// const Product = require('../model/productModel')
+// const project = require('../model/productModel')
 const Project = require("../model/projectModel")
 const User = require("../model/userModel")
 const Firm = require("../model/firmModel")
@@ -171,24 +171,6 @@ route.put("/update/:id/:projectId", authTest, async (req, res) => {
       msg: "error on pur part. we are on it now",
       error: e,
     })
-  }
-})
-
-// delete a project not sure if this should be in the brochure tho
-route.delete("/delete/:id/:projectId", authTest, async (req, res) => {
-  try {
-    const user = await Project.findOneAndDelete({
-      userId: req.params.id,
-      _id: req.params.projectId,
-    })
-    if (user) {
-      return res
-        .status(201)
-        .json({ succsess: true, msg: "delted successfully" })
-    }
-    return res.status(502).json({ success: false, msg: "not allowed" })
-  } catch (e) {
-    return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
 
@@ -473,6 +455,77 @@ route.get("/search", async (req, res) => {
     }
   } catch (e) {
     res.status(500).json({ msg: "failed " + e, success: false })
+  }
+})
+
+// delete
+route.delete("/delete/:id/:projectId", authTest, async (req, res) => {
+  try {
+    const project = await Project.findOne({ _id: req.params.projectId })
+    // console.log(project)
+    if (project) {
+      const { userInfo } = project
+      if (userInfo.firm[0]) {
+        const firm = await Firm.findOneAndUpdate(
+          { _id: userInfo.firm[0].firmId },
+          {
+            $pull: { projects: { projectId: req.params.projectId } },
+          },
+          { new: true }
+        )
+        console.log(firm)
+        await project.deleteOne({ _id: req.params.projectId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { firm, project },
+        })
+      } else if (userInfo.professional[0]) {
+        const professional = await Professional.findOneAndUpdate(
+          { _id: userInfo.professional[0].professionalId },
+          {
+            $pull: { projects: { projectId: req.params.projectId } },
+          },
+          { new: true }
+        )
+        await project.deleteOne({ _id: req.params.projectId })
+        // const deletedProject = await Project.findOneAndDelete({ _id: req.params.projectId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { professional, project },
+        })
+      } else if (userInfo.manufacturer[0]) {
+        const manufacturer = await Manufacturer.findOneAndUpdate(
+          { _id: userInfo.manufacturer[0].manufacturerId },
+          {
+            $pull: { projects: { projectId: req.params.projectId } },
+          },
+          { new: true }
+        )
+        await project.deleteOne({ _id: req.params.projectId })
+        return res.status(201).json({
+          succsess: true,
+          msg: "delted successfully",
+          data: { manufacturer, project },
+        })
+      } else {
+        console.log(
+          "something is wrong since it couldn't find the user which created it"
+        )
+        return res.status(409).json({
+          succsess: false,
+          msg: "user cannot delete the project",
+        })
+      }
+    }
+
+    return res
+      .status(501)
+      .json({ succsess: false, msg: "could't find the project" })
+  } catch (e) {
+    console.log(e)
+    return res.status(500).json({ success: false, msg: "error on " + e })
   }
 })
 

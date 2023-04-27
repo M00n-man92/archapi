@@ -67,6 +67,7 @@ route.get(
   pagination(User, "manufacturer"),
   async (req, res) => {
     // pagination(User, "firm"),
+    console.log(res.paginatedResults.result.length)
     const query = req.query.new
     try {
       // const usertype = User.userType.firm.isFirm

@@ -53,7 +53,7 @@ const schema = new mongoose.Schema(
         img: { type: String },
       },
     ],
-    price: { type: Number, required: true },
+    price: { type: Number },
     inStock: {
       amount: { type: Number, default: 1 },
       isIt: { type: Boolean, default: true },

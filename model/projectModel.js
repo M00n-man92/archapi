@@ -6,6 +6,7 @@ const schema = new mongoose.Schema(
     discription: { type: Array },
     image: { type: Array },
     catagory: { type: Array },
+    client: { type: String },
     userInfo: {
       userName: { type: String },
       name: { type: String },
