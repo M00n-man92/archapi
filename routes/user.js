@@ -135,7 +135,7 @@ route.post("/login", async (req, res) => {
   const { email, password, userName } = req.body
   // console.log(email,password)
   try {
-    console.log(email, password, userName)
+    // console.log(email, password, userName)
     let user
     email
       ? (user = await User.findOne({ email }))
@@ -168,11 +168,13 @@ route.post("/login", async (req, res) => {
         )
 
         const { password, _id, ...others } = user._doc
-        console.log(user)
+        // console.log(user)
 
-        return res
-          .status(201)
-          .json({ success: true, msg: "login success", data: { _id, token } })
+        return res.status(201).json({
+          success: true,
+          msg: "login success",
+          data: { _id, token, a: user.isAdmin },
+        })
       }
     }
   } catch (e) {
@@ -214,7 +216,7 @@ route.get("/recharge/:token", async (req, res) => {
   const password = req.body.password
 
   try {
-    const decoded = await jwt.verify(token, process.env.JWT_CONFORMATION_PASS, {
+    const decoded = await jwt.verify(token, process.env.JWT_PASS, {
       complete: true,
     })
 
@@ -222,26 +224,33 @@ route.get("/recharge/:token", async (req, res) => {
     console.log(decoded)
     // http://localhost:5000/forgot/${token}
     // https://leyuclothing.herokuapp.com/forgot/${token}
-    res.status(301).redirect(`https://niddf.com/authentication/change/${token}`)
+    res
+      .status(301)
+      .redirect(`https://www.niddf.com/authentication/change/${token}/${id}`)
   } catch (e) {
+    console.log(e)
     return res
       .status(500)
       .json({ success: false, msg: "error on pur part. we are on it now" })
   }
 })
 
-route.get("/reset/:email", async (req, res) => {
+route.post("/reset", async (req, res) => {
+  console.log(req.body)
+  const { email, userName } = req.body
   try {
-    const email = req.params.email
-    console.log(email)
-    const foundit = await User.findOne({ email: email })
+    // const email = req.params.email
+
+    let foundit
+    email
+      ? (foundit = await User.findOne({ email: email }))
+      : (foundit = await User.findOne({ userName: userName }))
+
     if (foundit) {
       console.log(foundit)
-      const tokenn = await jwt.sign(
-        { id: foundit._id },
-        process.env.JWT_CONFORMATION_PASS,
-        { expiresIn: "1d" }
-      )
+      const tokenn = await jwt.sign({ id: foundit._id }, process.env.JWT_PASS, {
+        expiresIn: "1d",
+      })
       // const url = `http://localhost:5000/api/user/recharge/${emailtoken}`
       const url = `https://node.niddf.com/api/user/recharge/${tokenn}`
       let transporter = nodemailer.createTransport({
@@ -256,9 +265,9 @@ route.get("/reset/:email", async (req, res) => {
       const options = {
         from: "SheramiDev@outlook.com", // sender address
         to: foundit.email, // list of receivers
-        subject: "Change your password", // Subject line
+        subject: "Request to change password", // Subject line
 
-        html: `please press this to reset your password: <a href="${url}">${url}</a>`, // html body
+        html: `Please press this link to reset your password. Link expires after 24 hours: <a href="${url}">${url}</a>`, // html body
       }
 
       await transporter.sendMail(options, (error, info) => {
@@ -282,7 +291,7 @@ route.get("/reset/:email", async (req, res) => {
     } else {
       return res.status(409).json({
         success: false,
-        msg: "no user by that email. please check agian",
+        msg: "no user by that email/user name. please check agian",
       })
     }
   } catch (e) {
@@ -296,7 +305,8 @@ route.get("/reset/:email", async (req, res) => {
   }
 })
 
-route.put("/update/:id", authTestAdmin, async (req, res) => {
+route.put("/update/:id", authTest, async (req, res) => {
+  console.log(req.body.password)
   if (req.body.password) {
     req.body.password = await genert(req.body.password)
   }
@@ -309,7 +319,8 @@ route.put("/update/:id", authTestAdmin, async (req, res) => {
       { new: true }
     )
     if (updatedUser) {
-      const [password, _id, token, ...others] = updatedUser._doc
+      const { password, _id, ...others } = updatedUser._doc
+      console.log(updatedUser._doc)
       return res
         .status(201)
         .json({ success: true, msg: "update complete", data: others })
@@ -357,13 +368,14 @@ route.get("/find/:id", authTest, async (req, res) => {
     if (user.userType.firm.isFirm) {
       const firm = await Firm.findById(user.userType.firm.firmId)
       if (!firm) {
-        console.log()
+        // console.log("firm not found")
         return res
           .status(401)
           .json({ success: false, msg: "couldn't locate firm" })
       }
-      console.log("firm foind")
+      // console.log("firm foind")
       const data = { ...others, firm }
+      // console.log(data)
       return res.status(201).json({
         succsess: true,
         msg: "request completed successfully",
@@ -374,11 +386,13 @@ route.get("/find/:id", authTest, async (req, res) => {
         user.userType.manufacturer.manufacturerId
       )
       if (!manufacturer) {
+        // console.log("manu not found")
         return res
           .status(401)
           .json({ success: false, msg: "couldn't locate manufacturer data" })
       }
       const data = { ...others, manufacturer }
+      // console.log(data)
       return res.status(201).json({
         succsess: true,
         msg: "request completed successfully",
@@ -389,12 +403,13 @@ route.get("/find/:id", authTest, async (req, res) => {
         user.userType.professional.professionalId
       )
       if (!professional) {
-        console.log("professional not fonid")
+        // console.log("professional not fonid")
         return res
           .status(401)
           .json({ success: false, msg: "couldn't locate professional data" })
       }
       const data = { ...others, professional }
+      // console.log(data)
       return res.status(201).json({
         succsess: true,
         msg: "request completed successfully",
@@ -402,7 +417,7 @@ route.get("/find/:id", authTest, async (req, res) => {
       })
     }
   } catch (e) {
-    return res.status(500).json({ success: false, msg: "error on " + e })
+    return res.status(500).json({ success: false, msg: e })
   }
 })
 route.get("/find/:id/:nonid", authTest, async (req, res) => {
@@ -433,50 +448,6 @@ route.get("/status", authTest, async (req, res) => {
     return res.status(201).json(data)
   } catch (e) {
     return res.status(500).json({ success: false, msg: "errsdfasdfor on " + e })
-  }
-})
-
-route.put("/userupdate/:token", async (req, res) => {
-  console.log(req.body.password)
-
-  if (req.body.password) {
-    req.body.password = await genert(req.body.password)
-  }
-
-  const token = req.params.token
-  console.log(req.body.password)
-
-  try {
-    const decoded = await jwt.verify(token, process.env.JWT_CONFORMATION_PASS, {
-      complete: true,
-    })
-
-    const id = decoded.payload.id
-    console.log(id)
-    const updatedUser = await User.findOneAndUpdate(
-      { _id: id },
-      {
-        $set: { password: req.body.password },
-      },
-      { new: true }
-    )
-
-    if (updatedUser) {
-      console.log("here")
-      console.log(updatedUser)
-      // res.status(301).redirect("http://localhost:5000/login")
-      return res
-        .status(201)
-        .json({ success: true, msg: "update complete, proceed to login page" })
-    } else {
-      return res
-        .status(409)
-        .json({ success: false, msg: "something went wrong." })
-    }
-  } catch (e) {
-    return res
-      .status(500)
-      .json({ success: false, msg: "error on pur part. we are on it now" })
   }
 })
 

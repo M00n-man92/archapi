@@ -30,6 +30,7 @@ const authTest = (req, res, next) => {
   verify(req, res, () => {
     // console.log("this is the param"+req.params.id)
     // console.log()
+    console.log(req.user.id, req.params.id)
     if (req.user.id === req.params.id || req.user.isAdmin) {
       next()
     } else {
@@ -42,7 +43,9 @@ const authTestAdmin = (req, res, next) => {
     if (req.user.isAdmin) {
       next()
     } else {
-      return res.status(401).json({ success: false, msg: "error" })
+      return res
+        .status(401)
+        .json({ success: false, msg: "error you dont have access to this yet" })
     }
   })
 }

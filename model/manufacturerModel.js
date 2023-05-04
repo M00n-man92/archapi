@@ -14,6 +14,7 @@ const schema = new mongoose.Schema(
     products: [
       { productId: { type: mongoose.Schema.ObjectId, ref: "product" } },
     ],
+    tenders: [{ tenderId: { type: mongoose.Schema.ObjectId, ref: "tender" } }],
     blogs: [{ blogId: { type: mongoose.Schema.ObjectId, ref: "blog" } }],
     logo: { type: String },
     image: { type: Array },
