@@ -8,11 +8,11 @@ const User = require("../model/userModel")
 const { pagination } = require("./pagination")
 const { authTestAdmin } = require("./verifyToken")
 
-route.get("/tender", pagination(Tender), (req, res) => {
+route.get("/tender/find", pagination(Tender), (req, res) => {
   const query = req.query.new
   try {
     // const usertype = User.userType.firm.isFirm
-
+    console.log(res.paginatedResults)
     return res.status(201).json({
       succsess: true,
       msg: "loaded successfully",
