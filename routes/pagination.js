@@ -1,3 +1,6 @@
+const Firm = require("../model/firmModel")
+const Projects = require("../model/projectModel")
+
 const pagination = (model, firm) => {
   return async (req, res, next) => {
     const page = parseInt(req.query.page)
@@ -35,13 +38,43 @@ const pagination = (model, firm) => {
               },
             },
             {
+              $lookup: {
+                from: "projects",
+                localField: "_id",
+                foreignField: "userInfo.userId",
+                as: "projects",
+              },
+            },
+            {
+              $lookup: {
+                from: "products",
+                localField: "_id",
+                foreignField: "userInfo.userId",
+                as: "products",
+              },
+            },
+            {
               $project: {
                 _id: 1,
                 name: 1,
                 profilepic: 1,
                 lastName: 1,
                 userName: 1,
-                firmData: { _id: 1, catagory: 1 },
+                firmData: { _id: 1, catagory: 1, discription: 1 },
+                projects: {
+                  _id: 1,
+                  title: 1,
+                  discription: 1,
+                  image: 1,
+                  createdAt: 1,
+                },
+                products: {
+                  _id: 1,
+                  title: 1,
+                  discription: 1,
+                  image: 1,
+                  createdAt: 1,
+                },
               },
             },
           ])

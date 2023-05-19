@@ -451,4 +451,8 @@ route.get("/status", authTest, async (req, res) => {
   }
 })
 
+route.post("/createpassword", async (req, res) => {
+  const password = await genert(req.body.password)
+  console.log(password)
+})
 module.exports = route

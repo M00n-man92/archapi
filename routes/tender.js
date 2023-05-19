@@ -12,7 +12,7 @@ route.get("/tender/find", pagination(Tender), (req, res) => {
   const query = req.query.new
   try {
     // const usertype = User.userType.firm.isFirm
-    console.log(res.paginatedResults)
+    // console.log(res.paginatedResults)
     return res.status(201).json({
       succsess: true,
       msg: "loaded successfully",
@@ -304,6 +304,48 @@ route.delete("/delete/:id/:tenderId", authTestAdmin, async (req, res) => {
   } catch (e) {
     console.log(e)
     return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+})
+
+route.get("/recent", async (req, res) => {
+  const query = req.query.new
+  try {
+    console.log("here")
+    // const usertype = User.userType.firm.isFirm
+    const tender = await Tender.find().sort({ createdAt: -1 }).limit(5)
+    if (!tender) {
+      return res
+        .status(409)
+        .json({ success: false, msg: "couldn't get tenders" })
+    }
+    console.log(tender)
+    return res.status(201).json({
+      succsess: true,
+      msg: "loaded successfully",
+      data: tender,
+    })
+  } catch (e) {
+    return res.status(500).json({ success: false, msg: "error on " + e })
+  }
+})
+
+// search blog
+route.get("/search", async (req, res) => {
+  const q = req.query.q
+  try {
+    const result = await Tender.find(
+      { title: { $regex: new RegExp(q) } },
+      { _v: 0 }
+    )
+
+    if (result.length === 0) {
+      res.json({ msg: "No search results found", success: false })
+      // console.log("kandanchibesteker")
+    } else {
+      res.json({ msg: "search successfulin", success: true, data: result })
+    }
+  } catch (e) {
+    res.status(500).json({ msg: "failed " + e, success: false })
   }
 })
 
